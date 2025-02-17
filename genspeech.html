@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OpenAI Text-to-Speech</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "preact-stand-alone": "https://cdn.jsdelivr.net/npm/preact-htm-signals-standalone/dist/standalone.js"
+        }
+      }
+    </script>
+    <style>
+      body {
+        font-family: system-ui;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      textarea {
+        width: 100%;
+        height: 100px;
+        margin: 10px 0;
+      }
+      button {
+        padding: 10px 20px;
+        background: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      button:disabled {
+        background: #cccccc;
+        cursor: not-allowed;
+      }
+      .error {
+        color: red;
+        margin-top: 10px;
+      }
+      .controls {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: #f5f5f5;
+        border-radius: 8px;
+      }
+      .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .control-group label {
+        font-weight: 500;
+      }
+      select, input[type="number"] {
+        padding: 0.5rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: white;
+      }
+      .audio-player {
+        margin-top: 20px;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      const apiKey = localStorage.getItem('openaiApiKey') || '';
+
+      if (!apiKey) {
+        const key = prompt('Please enter your Open AI API key:');
+        if (key) saveApiKey(key);
+      }
+
+      function saveApiKey(key) {
+        localStorage.setItem('openaiApiKey', key);
+        apiKey.value = key;
+      }
+    </script>
+
+    <script type="module">
+      import { html, render, signal } from 'preact-stand-alone';
+
+      const apiKey = signal(localStorage.getItem('openaiApiKey') || '');
+      const text = signal('');
+      const voice = signal('alloy');
+      const format = signal('mp3');
+      const speed = signal(1);
+      const audioUrl = signal('');
+      const error = signal('');
+      const isLoading = signal(false);
+
+      function generateSpeech() {
+        if (!text.value.trim()) {
+          error.value = 'Please enter some text';
+          return;
+        }
+
+        if (text.value.length > 4096) {
+          error.value = 'Text must be 4096 characters or less';
+          return;
+        }
+
+        isLoading.value = true;
+        error.value = '';
+
+        fetch('https://api.openai.com/v1/audio/speech', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey.value}`,
+          },
+          body: JSON.stringify({
+            model: 'tts-1-hd',
+            input: text.value,
+            voice: voice.value,
+            response_format: format.value,
+            speed: parseFloat(speed.value)
+          }),
+        })
+          .then(async (response) => {
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
+            }
+            return response.blob();
+          })
+          .then((blob) => {
+            const url = URL.createObjectURL(blob);
+            audioUrl.value = url;
+          })
+          .catch((err) => {
+            error.value = `Error: ${err.message}`;
+          })
+          .finally(() => {
+            isLoading.value = false;
+          });
+      }
+
+      function App() {
+        return html`
+          <div>
+            <h1>Generate Speech with OpenAI</h1>
+            
+            <div class="controls">
+              <div class="control-group">
+                <label for="voice">Voice</label>
+                <select 
+                  id="voice" 
+                  value=${voice.value} 
+                  onChange=${(e) => (voice.value = e.target.value)}
+                >
+                  <option value="alloy">Alloy</option>
+                  <option value="echo">Echo</option>
+                  <option value="fable">Fable</option>
+                  <option value="onyx">Onyx</option>
+                  <option value="nova">Nova</option>
+                  <option value="shimmer">Shimmer</option>
+                </select>
+              </div>
+
+              <div class="control-group">
+                <label for="format">Audio Format</label>
+                <select 
+                  id="format" 
+                  value=${format.value} 
+                  onChange=${(e) => (format.value = e.target.value)}
+                >
+                  <option value="mp3">MP3</option>
+                  <option value="opus">Opus</option>
+                  <option value="aac">AAC</option>
+                  <option value="flac">FLAC</option>
+                  <option value="wav">WAV</option>
+                  <option value="pcm">PCM</option>
+                </select>
+              </div>
+
+              <div class="control-group">
+                <label for="speed">Speed (0.25 - 4.0)</label>
+                <input 
+                  type="number" 
+                  id="speed" 
+                  min="0.25" 
+                  max="4.0" 
+                  step="0.25"
+                  value=${speed.value}
+                  onChange=${(e) => (speed.value = e.target.value)}
+                />
+              </div>
+            </div>
+
+            <textarea
+              placeholder="Enter text to convert to speech (max 4096 characters)..."
+              value=${text.value}
+              onInput=${(e) => (text.value = e.target.value)}
+            ></textarea>
+
+            <button 
+              onClick=${generateSpeech} 
+              disabled=${isLoading.value || !text.value.trim()}
+            >
+              ${isLoading.value ? 'Generating audio...' : 'Generate Speech'}
+            </button>
+
+            ${error.value && html`<div class="error">${error.value}</div>`}
+            ${audioUrl.value && html`
+              <audio controls class="audio-player" src=${audioUrl.value}>
+                Your browser does not support the audio element.
+              </audio>
+            `}
+          </div>
+        `;
+      }
+
+      render(html`<${App} />`, document.body);
+    </script>
+  </body>
+</html>

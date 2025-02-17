@@ -1,0 +1,38 @@
+.btn {
+  --height: 40px;
+  --space: 8px;
+  height: var(--height);
+  line-height: var(--height);
+  border-radius: calc(var(--height) / 2);
+  gap: var(--space);
+  padding: 0 calc(var(--space) * 2);
+  border: 2px solid var(--txt-primary);
+  background-color: var(--surface-primary);
+  color: var(--txt-primary);
+  fill: var(--txt-primary);
+  display: flex;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  width: fit-content;
+  outline: none;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  white-space: nowrap;
+  transition: background-color 0.2s, border-color 0.2s, opacity 0.2s;
+  /* Add box-sizing to prevent layout shift */
+  box-sizing: border-box;
+}
+
+.btn:hover,
+.btn:active {
+  border-color: var(--txt-secondary);
+  color: var(--txt-secondary);
+  fill: var(--txt-secondary);
+  background-color: var(--surface-secondary);
+}

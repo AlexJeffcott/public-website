@@ -1,0 +1,63 @@
+:root[data-color='purple'] {
+  --base-color: rgba(255, 0, 255, 0.8);
+}
+
+:root[data-color='orange'] {
+  --base-color: orange;
+}
+
+:root[data-color='grey'] {
+  --base-color: grey;
+}
+
+:root[data-color='blue'] {
+  --base-color: blue;
+}
+
+:root[data-color='red'] {
+  --base-color: red;
+}
+
+:root[data-color='green'] {
+  --base-color: rgb(0, 255, 0);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root {
+  color-scheme: light dark;
+  --base-color: grey;
+
+  --txt-primary: light-dark(
+    lch(from var(--base-color) calc(l - 70) c calc(h + 120)),
+    lch(from var(--base-color) calc(l + 70) c calc(h + 120))
+  );
+
+  --txt-secondary: light-dark(
+    lch(from var(--base-color) calc(l - 60) calc(c - 40) calc(h + 120)),
+    lch(from var(--base-color) calc(l + 60) calc(c - 40) calc(h + 120))
+  );
+
+  --surface-primary: light-dark(
+    lch(from var(--base-color) calc(l + 60) calc(c - 20) h),
+    lch(from var(--base-color) calc(l - 60) calc(c - 20) h)
+  );
+
+  --surface-secondary: light-dark(
+    lch(from var(--base-color) calc(l + 40) calc(c - 20) h),
+    lch(from var(--base-color) calc(l - 30) calc(c - 20) h)
+  );
+
+  --bg-primary: var(--surface-secondary);
+
+  --bg-secondary: light-dark(
+    lch(from var(--base-color) calc(l + 10) calc(c - 40) h),
+    lch(from var(--base-color) calc(l - 40) calc(c - 40) h)
+  );
+}
