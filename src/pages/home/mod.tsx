@@ -15,7 +15,7 @@ export const HomePage: FunctionComponent = () => {
         <ToggleColorThemeBtn />
       </header>
       <div class={classes.content}>
-        <h1>Welcome to Alex's Website</h1>
+        <h1>Welcome</h1>
         <nav class={classes.nav}>
           <NavigateToCodeBtn />
         </nav>

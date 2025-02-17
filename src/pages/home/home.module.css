@@ -23,6 +23,10 @@
   gap: 2rem;
 }
 
+.content > * {
+  transform: translateY(-100px)
+}
+
 .nav {
   display: flex;
   flex-direction: column;
@@ -31,5 +35,4 @@
 }
 
 .footer {
-  text-align: center;
 }

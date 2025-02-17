@@ -23,7 +23,7 @@
   },
   "tasks": {
     "build": "deno run --allow-run --allow-read --allow-net --allow-write --allow-env --watch=src build.ts",
-    "serve": "deno run --allow-net --allow-read --allow-env server.ts"
+    "serve": "deno run --allow-net --allow-read --allow-env --watch=./src server.ts"
   },
   "imports": {
     "@/": "./src/",

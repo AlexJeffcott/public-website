@@ -121,6 +121,7 @@ function MultiTabEditor() {
           monacoStatus.value = 'ready'
         })
       }).catch((err) => {
+        console.log(err)
         monacoStatus.value = 'initial'
       })
     }
@@ -229,47 +230,19 @@ return results;
       >
       </div>
 
-      <button onClick={runBenchmark}>run benchmark</button>
-      <button onClick={runTest}>run tests</button>
-      <div style='height: 20vh; overflow: hidden; border-radius: 5px; padding: 16px; background: var(--vscode-editor-background, #1e1e1e);color: white;'>
-        {showTestResults.value
-          ? (
-            <TestResults>
-              {testResults.value?.split('\n').map((i) => <div>{i}</div>)}
-            </TestResults>
-          )
-          : (
-            <BenchmarkResults>
-              {benchmarkResults.value?.split('\n').map((i) => <div>{i}</div>)}
-            </BenchmarkResults>
-          )}
+      <div class={classes.results}>
+        <button onClick={runTest}>run tests</button>
+        <TestResults>
+          {testResults.value?.split('\n').map((i) => <div>{i}</div>)}
+        </TestResults>
+        <button onClick={runBenchmark}>run benchmark</button>
+        <BenchmarkResults>
+          {benchmarkResults.value?.split('\n').map((i) => <div>{i}</div>)}
+        </BenchmarkResults>
       </div>
     </>
   )
 }
-
-import esbuildWasm from 'npm:esbuild-wasm@0.24.2/lib/main.d.ts'
-
-type OnLoadArgs = esbuildWasm.OnLoadArgs
-type OnLoadResult = esbuildWasm.OnLoadResult
-type OnResolveArgs = esbuildWasm.OnResolveArgs
-type OnResolveResult = esbuildWasm.OnResolveResult
-type Plugin = esbuildWasm.Plugin
-type PluginBuild = esbuildWasm.PluginBuild
-type Loader = esbuildWasm.Loader
-type BuildOptions = esbuildWasm.BuildOptions
-type BuildResult = esbuildWasm.BuildResult<esbuildWasm.BuildOptions>
-type Stop = typeof esbuildWasm.stop
-type Build = typeof esbuild.build
-type Initialize = typeof esbuildWasm.initialize
-type InitializeOptions = esbuildWasm.InitializeOptions
-
-const esbuild = signal<
-  { initialize: Initialize; transform: typeof esbuildWasm.transform }
->()
-const esbuildStatus = signal<'initial' | 'loading' | 'ready' | 'complete'>(
-  'initial',
-)
 
 const TestResults: FunctionComponent = ({ children }) => {
   return <div>{children}</div>
@@ -279,16 +252,29 @@ const BenchmarkResults: FunctionComponent = ({ children }) => {
   return <div>{children}</div>
 }
 
+import esbuildWasm from 'npm:esbuild-wasm@0.25.0/lib/main.d.ts'
+
+const esbuild = signal<
+  {
+    initialize: typeof esbuildWasm.initialize
+    transform: typeof esbuildWasm.transform
+  }
+>()
+
+const esbuildStatus = signal<'initial' | 'loading' | 'ready' | 'complete'>(
+  'initial',
+)
+
 export const CodePage: FunctionComponent = () => {
   onMount(() => {
     if (esbuild.value === undefined) {
-      import('https://unpkg.com/esbuild-wasm@0.24.2/esm/browser.min.js').then(
+      import('https://unpkg.com/esbuild-wasm@0.25.0/esm/browser.min.js').then(
         (res) => {
           esbuild.value = res
           if (esbuildStatus.value === 'initial') {
             esbuildStatus.value = 'loading'
             res.initialize({
-              wasmURL: 'https://unpkg.com/esbuild-wasm@0.24.2/esbuild.wasm',
+              wasmURL: 'https://unpkg.com/esbuild-wasm@0.25.0/esbuild.wasm',
             }).then(() => {
               esbuildStatus.value = 'ready'
             })
