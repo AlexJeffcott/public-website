@@ -12,8 +12,8 @@ import {
   useSignalEffect,
 } from '@preact/signals'
 import { onMount, useStableCallback } from '@/hooks/mod.ts'
-import { runBenchmarkSuite } from './benchmark.ts'
-import { runTestSuite } from './test-runner.ts'
+import { runBenchmarkSuite } from '@/pages/code/benchmark.ts'
+import { runTestSuite } from '@/pages/code/test-runner.ts'
 import { useStores } from '@/contexts/stores.tsx'
 
 const currentFileName = signal<string>('script.ts')
@@ -55,7 +55,7 @@ const currentProject = signal<
 })
 
 function MultiTabEditor() {
-  const { editorStore } = useStores()
+  const { editorStore, transpilerStore } = useStores()
   const showTestResults = useSignal<boolean>(false)
   const testResults = useSignal<string | undefined>()
   const benchmarkResults = useSignal<string | undefined>()
@@ -67,18 +67,19 @@ function MultiTabEditor() {
     if (!editorStore.ready.value) {
       editorStore.current.fetch()
     }
+    if (!transpilerStore.ready.value) {
+      transpilerStore.current.fetch()
+    }
   })
 
   const runBenchmark = useStableCallback(async () => {
-    if (esbuild.value && editorStore.editor.value) {
+    if (transpilerStore.ready.value && editorStore.editor.value) {
       currentProject.value[currentFileName.value] = editorStore.getValue()
 
       try {
-        const runCode =
-          (await esbuild.value.transform(currentProject.value['script.ts'], {
-            loader: 'ts',
-            target: 'chrome130',
-          })).code
+        const runCode = await transpilerStore.transform(
+          currentProject.value['script.ts'],
+        )
         const fn = new Function(runCode + '\nreturn run;')()
 
         const result = await runBenchmarkSuite(fn)
@@ -93,22 +94,16 @@ function MultiTabEditor() {
   })
 
   const runTest = useStableCallback(async () => {
-    if (editorStore.editor.value && esbuild.value) {
+    if (editorStore.editor.value && transpilerStore.ready.value) {
       currentProject.value[currentFileName.value] = editorStore.getValue()
 
       try {
-        const runCode =
-          (await esbuild.value.transform(currentProject.value['script.ts'], {
-            loader: 'ts',
-            target: 'chrome130',
-          })).code
-        const testCode = (await esbuild.value.transform(
+        const runCode = await transpilerStore.transform(
+          currentProject.value['script.ts'],
+        )
+        const testCode = await transpilerStore.transform(
           currentProject.value['script.test.ts'],
-          {
-            loader: 'ts',
-            target: 'chrome130',
-          },
-        )).code
+        )
 
         const moduleCode = `return async function() {
     const results = { passed: 0, failed: 0, total: 0, details: [] }
@@ -206,37 +201,7 @@ const BenchmarkResults: FunctionComponent = ({ children }) => {
   return <div>{children}</div>
 }
 
-import esbuildWasm from 'npm:esbuild-wasm@0.25.0/lib/main.d.ts'
-
-const esbuild = signal<
-  {
-    initialize: typeof esbuildWasm.initialize
-    transform: typeof esbuildWasm.transform
-  }
->()
-
-const esbuildStatus = signal<'initial' | 'loading' | 'ready' | 'complete'>(
-  'initial',
-)
-
 export const CodePage: FunctionComponent = () => {
-  onMount(() => {
-    if (esbuild.value === undefined) {
-      import('https://unpkg.com/esbuild-wasm@0.25.0/esm/browser.min.js').then(
-        (res) => {
-          esbuild.value = res
-          if (esbuildStatus.value === 'initial') {
-            esbuildStatus.value = 'loading'
-            res.initialize({
-              wasmURL: 'https://unpkg.com/esbuild-wasm@0.25.0/esbuild.wasm',
-            }).then(() => {
-              esbuildStatus.value = 'ready'
-            })
-          }
-        },
-      )
-    }
-  })
   return (
     <main class={classes.page}>
       <header class={classes.header}>

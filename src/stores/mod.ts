@@ -1,11 +1,13 @@
 import { UIStore } from '@/stores/ui.ts'
 import { RouterStore } from '@/stores/router.ts'
 import { EditorStore } from '@/stores/editor.ts'
+import { TranspilerStore } from '@/stores/transpiler.ts'
 
 export type Stores = {
   uiStore: UIStore
   routerStore: RouterStore
   editorStore: EditorStore
+  transpilerStore: TranspilerStore
 }
 
 export function createStores(): Stores {
@@ -13,5 +15,6 @@ export function createStores(): Stores {
     uiStore: new UIStore(),
     routerStore: new RouterStore(),
     editorStore: new EditorStore(),
+    transpilerStore: new TranspilerStore(),
   }
 }
