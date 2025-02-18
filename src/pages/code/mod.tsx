@@ -5,36 +5,16 @@ import {
   ToggleColorThemeBtn,
   ToggleThemeBtn,
 } from '@/actions-ui/mod.ts'
-import { effect, signal, useComputed, useSignal } from '@preact/signals'
+import {
+  signal,
+  useComputed,
+  useSignal,
+  useSignalEffect,
+} from '@preact/signals'
 import { onMount, useStableCallback } from '@/hooks/mod.ts'
 import { runBenchmarkSuite } from './benchmark.ts'
 import { runTestSuite } from './test-runner.ts'
-
-const monacoStatus = signal<'initial' | 'loading' | 'ready' | 'complete'>(
-  'initial',
-)
-
-type Editor = {
-  setValue: (arg: string) => void
-  getValue: () => string
-}
-
-type Monaco = {
-  create: (domElement: HTMLElement, options?: any) => Editor
-}
-
-const editor = signal<Editor | undefined>()
-const monaco = signal<Monaco | undefined>()
-const dispose = signal<(() => void) | undefined>()
-const configure = signal<((args: any) => void) | undefined>()
-const cancelable = signal<
-  Promise<
-    {
-      cancel?: () => void
-      editor?: Monaco
-    }
-  > | undefined
->()
+import { useStores } from '@/contexts/stores.tsx'
 
 const currentFileName = signal<string>('script.ts')
 
@@ -74,31 +54,8 @@ const currentProject = signal<
   'script.test.ts': defaultTestFunction,
 })
 
-effect(() => {
-  if (
-    monacoStatus.value === 'ready' && monaco.value
-  ) {
-    const el = document.querySelector('#editor') as HTMLElement
-    if (el) {
-      editor.value = monaco.value.create(el, {
-        language: 'typescript',
-        theme: 'vs-dark',
-        minimap: { enabled: false },
-        automaticLayout: true,
-        lineNumbers: 'off',
-      })
-
-      monacoStatus.value = 'complete'
-    }
-  }
-})
-
-effect(() => {
-  const ed = editor.value
-  ed?.setValue(currentProject.value[currentFileName.value])
-})
-
 function MultiTabEditor() {
+  const { editorStore } = useStores()
   const showTestResults = useSignal<boolean>(false)
   const testResults = useSignal<string | undefined>()
   const benchmarkResults = useSignal<string | undefined>()
@@ -107,30 +64,14 @@ function MultiTabEditor() {
   )
 
   onMount(() => {
-    if (monacoStatus.value === 'initial') {
-      monacoStatus.value = 'loading'
-      import(
-        'https://esm.sh/@monaco-editor/loader@1.5.0?target=es2022'
-      ).then((loader) => {
-        dispose.value = loader.default.init().cancel
-        configure.value = loader.default.config
-
-        cancelable.value = loader.default.init()
-        cancelable.value?.then((res) => {
-          monaco.value = res.editor
-          monacoStatus.value = 'ready'
-        })
-      }).catch((err) => {
-        console.log(err)
-        monacoStatus.value = 'initial'
-      })
+    if (!editorStore.ready.value) {
+      editorStore.current.fetch()
     }
   })
 
   const runBenchmark = useStableCallback(async () => {
-    if (esbuild.value && editor.value) {
-      currentProject.value[currentFileName.value] = editor.value?.getValue() ||
-        ''
+    if (esbuild.value && editorStore.editor.value) {
+      currentProject.value[currentFileName.value] = editorStore.getValue()
 
       try {
         const runCode =
@@ -152,9 +93,8 @@ function MultiTabEditor() {
   })
 
   const runTest = useStableCallback(async () => {
-    if (editor.value && esbuild.value) {
-      currentProject.value[currentFileName.value] = editor.value?.getValue() ||
-        ''
+    if (editorStore.editor.value && esbuild.value) {
+      currentProject.value[currentFileName.value] = editorStore.getValue()
 
       try {
         const runCode =
@@ -208,6 +148,17 @@ return results;
     }
   })
 
+  useSignalEffect(() => {
+    // Initialize editor when Monaco is ready
+    if (editorStore.ready.value) {
+      const editorElement = document.querySelector('#editor') as HTMLElement
+      if (editorElement) {
+        editorStore.createEditor(editorElement)
+        editorStore.setValue(currentProject.value[currentFileName.value])
+      }
+    }
+  })
+
   return (
     <>
       {fileNames.value.map((fileName: string) => (
@@ -216,9 +167,12 @@ return results;
           disabled={fileName ===
             currentFileName.value}
           onClick={() => {
-            currentProject.value[currentFileName.value] =
-              editor.value?.getValue() || ''
-            currentFileName.value = fileName
+            if (editorStore.editor.value) {
+              currentProject.value[currentFileName.value] = editorStore
+                .getValue()
+              currentFileName.value = fileName
+              editorStore.setValue(currentProject.value[fileName])
+            }
           }}
         >
           {fileName}
@@ -297,3 +251,4 @@ export const CodePage: FunctionComponent = () => {
     </main>
   )
 }
+
