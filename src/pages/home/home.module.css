@@ -24,7 +24,7 @@
 }
 
 .content > * {
-  transform: translateY(-100px)
+  transform: translateY(-100px);
 }
 
 .nav {
@@ -34,5 +34,4 @@
   align-items: center;
 }
 
-.footer {
-}
+.footer {}

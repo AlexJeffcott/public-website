@@ -9,18 +9,18 @@
 
 .results {
   display: grid;
-    overflow: hidden;
-    border-radius: 5px;
-    padding: 16px;
-    background: var(--vscode-editor-background, #1e1e1e);
-    color: white;
-    grid-auto-flow: column;
-    gap: 16px;
-     grid-template-columns: 1fr 1fr;
-    grid-template-rows: min-content minmax(14ch, auto);
-    grid-template-areas: 
-        "button1 button2"
-        "div1 div2";
+  overflow: hidden;
+  border-radius: 5px;
+  padding: 16px;
+  background: var(--vscode-editor-background, #1e1e1e);
+  color: white;
+  grid-auto-flow: column;
+  gap: 16px;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: min-content minmax(14ch, auto);
+  grid-template-areas:
+    'button1 button2'
+    'div1 div2';
 }
 
 .results div {

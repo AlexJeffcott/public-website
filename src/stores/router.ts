@@ -1,5 +1,5 @@
 import { type Signal, signal } from '@preact/signals'
-import { BaseStore } from './base.ts'
+import { BaseStore } from '@/stores/base.ts'
 
 export class RouterStore extends BaseStore {
   currentPath: Signal<string>

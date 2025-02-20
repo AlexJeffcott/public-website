@@ -1,29 +1,44 @@
-import { type Signal, signal } from '@preact/signals'
-import { BaseStore } from './base.ts'
-import { type ColorTheme, type Theme } from '../types/theme.ts'
+import { type ReadonlySignal } from '@preact/signals'
+import { BaseStore } from '@/stores/base.ts'
+import { type ColorTheme, type Theme } from '@/types/theme.ts'
+import { CyclablePersistence } from '@/persistence/mod.ts'
+
+const themeList: Theme[] = ['system', 'light', 'dark']
+const colorThemeList: ColorTheme[] = [
+  'grey',
+  'blue',
+  'red',
+  'green',
+  'orange',
+  'purple',
+]
 
 export class UIStore extends BaseStore {
-  theme: Signal<Theme>
-  colorTheme: Signal<ColorTheme>
+  #themePersistence: CyclablePersistence<Theme[]>
+  #colorThemePersistence: CyclablePersistence<ColorTheme[]>
   #mediaQuery: MediaQueryList
+  theme: ReadonlySignal<Theme | undefined>
+  colorTheme: ReadonlySignal<ColorTheme | undefined>
 
   constructor() {
     super('uiStore')
     this.#mediaQuery = globalThis.matchMedia(
       '(prefers-color-scheme: dark)',
     )
-    const savedTheme = (localStorage.getItem('theme') as Theme) ||
-      'system'
-    const savedColorTheme =
-      (localStorage.getItem('colorTheme') as ColorTheme) ||
-      'grey'
 
-    this.theme = signal(savedTheme)
-    this.colorTheme = signal(savedColorTheme)
+    this.#themePersistence = new CyclablePersistence('theme', themeList)
+    this.#colorThemePersistence = new CyclablePersistence(
+      'colorTheme',
+      colorThemeList,
+    )
 
-    // Initialize themes
-    this.#applyTheme(savedTheme)
-    this.#applyColorTheme(savedColorTheme)
+    this.theme = this.#themePersistence.current
+
+    this.colorTheme = this.#colorThemePersistence.current
+
+    // Apply initial themes
+    this.#applyTheme(this.theme.value)
+    this.#applyColorTheme(this.colorTheme.value)
 
     // Listen for system theme changes
     this.#mediaQuery.addEventListener('change', () => {
@@ -33,8 +48,8 @@ export class UIStore extends BaseStore {
     })
 
     this.logger.info('UIStore initialized', {
-      initialTheme: savedTheme,
-      initialColorTheme: savedColorTheme,
+      initialTheme: this.theme.value,
+      initialColorTheme: this.colorTheme.value,
     })
   }
 
@@ -47,57 +62,39 @@ export class UIStore extends BaseStore {
     document.documentElement.dataset.theme = systemTheme
   }
 
-  #applyTheme(theme: Theme) {
+  #applyTheme(theme: Theme | undefined) {
+    if (!theme) return
+
     if (theme === 'system') {
       this.#applySystemTheme()
     } else {
       document.documentElement.dataset.theme = theme
     }
-    localStorage.setItem('theme', theme)
   }
 
-  #applyColorTheme(colorTheme: ColorTheme) {
+  #applyColorTheme(colorTheme: ColorTheme | undefined) {
+    if (!colorTheme) return
     document.documentElement.dataset.color = colorTheme
-    localStorage.setItem('colorTheme', colorTheme)
   }
 
   toggleTheme() {
     this.logger.debug('Toggling theme', {
       currentTheme: this.theme.value,
     })
-    const themeOrder: Theme[] = ['light', 'dark', 'system']
-    const currentIndex = themeOrder.indexOf(this.theme.value)
-    const nextIndex = (currentIndex + 1) % themeOrder.length
-    const newTheme = themeOrder[nextIndex]
-
-    this.theme.value = newTheme
-    this.#applyTheme(newTheme)
+    this.#themePersistence.incIndex()
+    this.#applyTheme(this.theme.value)
   }
 
   toggleColorTheme() {
     this.logger.debug('Toggling color theme', {
       currentColorTheme: this.colorTheme.value,
     })
-    const colorThemeOrder: ColorTheme[] = [
-      'blue',
-      'red',
-      'green',
-      'orange',
-      'purple',
-      'grey',
-    ]
-    const currentIndex = colorThemeOrder.indexOf(
-      this.colorTheme.value,
-    )
-    const nextIndex = (currentIndex + 1) % colorThemeOrder.length
-    const newColorTheme = colorThemeOrder[nextIndex]
-
-    this.colorTheme.value = newColorTheme
-    this.#applyColorTheme(newColorTheme)
+    this.#colorThemePersistence.incIndex()
+    this.#applyColorTheme(this.colorTheme.value)
   }
 
   getCurrentTheme(): 'light' | 'dark' {
-    return this.theme.value === 'system'
+    return this.theme.value === 'system' || this.theme.value === undefined
       ? this.#getSystemTheme()
       : this.theme.value
   }
