@@ -13,6 +13,7 @@ export class TernaryPersistence {
   #disposes: Set<() => void>
   #type: 'localStorage' | 'sessionStorage'
   #stateName: string
+  #default: undefined
   current: ReadonlySignal<undefined | boolean>
 
   constructor(
@@ -21,7 +22,8 @@ export class TernaryPersistence {
   ) {
     this.#type = type
     this.#stateName = stateName
-    this.#sig = signal(undefined)
+    this.#default = undefined
+    this.#sig = signal(this.#default)
     this.#disposes = new Set()
 
     this.current = computed(() => {
@@ -46,7 +48,7 @@ export class TernaryPersistence {
     } else if (val === String(0)) {
       this.#sig.value = false
     } else {
-      this.#sig.value = undefined
+      this.#sig.value = this.#default
     }
   }
 
@@ -79,10 +81,16 @@ export class TernaryPersistence {
     this.#putValueInMemory(globalThis[this.#type].getItem(this.#stateName))
 
     // then listen for any storage changes and update the in-memory value accordingly
-    globalThis.addEventListener('storage', this.#storageCB)
+    globalThis.addEventListener(
+      'storage',
+      (event: StorageEvent) => this.#storageCB(event),
+    )
 
     this.#disposes.add(() =>
-      globalThis.removeEventListener('storage', this.#storageCB)
+      globalThis.removeEventListener(
+        'storage',
+        (event: StorageEvent) => this.#storageCB(event),
+      )
     )
 
     // listen to changes in the private signal and put them in storage
@@ -96,10 +104,10 @@ export class TernaryPersistence {
   }
 
   reset() {
-    // resetting does not create new signal objects so their identity is stable
     this.#disposes.forEach((dispose) => dispose())
     this.#disposes.clear()
     globalThis[this.#type].removeItem(this.#stateName)
+    this.#sig.value = this.#default
     this.#init()
   }
 }

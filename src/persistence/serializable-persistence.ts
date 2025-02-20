@@ -19,6 +19,7 @@ export class SerializablePersistence<A> {
   #disposes: Set<() => void>
   #type: 'localStorage' | 'sessionStorage'
   #stateName: string
+  #default: undefined
   current: ReadonlySignal<A | undefined>
 
   constructor(
@@ -27,7 +28,8 @@ export class SerializablePersistence<A> {
   ) {
     this.#type = type
     this.#stateName = stateName
-    this.#sig = signal(undefined)
+    this.#default = undefined
+    this.#sig = signal(this.#default)
     this.#disposes = new Set()
     this.current = computed(() => this.#sig.value)
 
@@ -40,7 +42,9 @@ export class SerializablePersistence<A> {
 
   #putValueInMemory(val: string | null) {
     try {
-      this.#sig.value = typeof val === 'string' ? JSON.parse(val) : val
+      this.#sig.value = typeof val === 'string'
+        ? JSON.parse(val)
+        : this.#default
     } catch {
       console.error(
         `Error when attempting to parse "${val}".`,
@@ -72,12 +76,17 @@ export class SerializablePersistence<A> {
     this.#putValueInMemory(globalThis[this.#type].getItem(this.#stateName))
 
     // then listen for any storage changes and update the in-memory value accordingly
-    globalThis.addEventListener('storage', this.#storageCB)
-
-    this.#disposes.add(() =>
-      globalThis.removeEventListener('storage', this.#storageCB)
+    globalThis.addEventListener(
+      'storage',
+      (event: StorageEvent) => this.#storageCB(event),
     )
 
+    this.#disposes.add(() =>
+      globalThis.removeEventListener(
+        'storage',
+        (event: StorageEvent) => this.#storageCB(event),
+      )
+    )
     // listen to changes in the private signal and put them in storage
     // it is important that this step is done after getting the value from storage
     // initially, lest the stored value be overridden.
@@ -93,6 +102,7 @@ export class SerializablePersistence<A> {
     this.#disposes.forEach((dispose) => dispose())
     this.#disposes.clear()
     globalThis[this.#type].removeItem(this.#stateName)
+    this.#sig.value = this.#default
     this.#init()
   }
 }

@@ -6,43 +6,42 @@ import {
   signal,
 } from '@preact/signals'
 
-// binary means yes or no. There is no maybe or definitely not.
-// this means that the value is either positively present, or not.
-// this means you can pass an id, and know whether is as been positively marked.
-// example:
-// ```
-//   const hasBeenSeen = new BinaryPersistance("hasBeenSeen").current
-//   return <div ref={() => hasBeenSeen.set()} >{hasBeenSeen.value ? 'yup' : 'nope'}</div>
-// ```
-//
-// example:
-// ```
-//   // in a UI component somewhere
-//   const hasClickedButton1 = new BinaryPersistance("hasClickedButton1")
-//   const hasClickedButton2 = new BinaryPersistance("hasClickedButton2")
-//   const hasClickedButton3 = new BinaryPersistance("hasClickedButton3")
-//   hasClickedButton1.set()
-//   hasClickedButton2.set()
-//   hasClickedButton3.set()
-//
-//   // in another component somewhere else
-//   const hasClickedButton1 = new BinaryPersistance("hasClickedButton1")
-//   const hasClickedButton2 = new BinaryPersistance("hasClickedButton2")
-//   const hasClickedButton3 = new BinaryPersistance("hasClickedButton3")
-//   const hasClickedAllTheButtons = useComputed(() => {
-//     return !!(hasClickedButton1.current.value && hasClickedButton2.current.value && hasClickedButton3.current.value)
-//   })
-//
-//   return <div>{hasClickedAllTheButtons.value ? 'yup' : 'nope'}</div>
-// ```
-
-// Why isn't this just a boolean that switches on and off????
-// Because that would essentially have three possible values: true, false and undefined.
-// This dtata structure only has 'hasBeenSet' | 'otherwise' as the non-default value is either present or not.
-// This means that the default value does not matter so long as it is different from the 'set' value.
-
-// 'unset' | true
-// undefined | 1
+/**
+ * A class that manages a persistent binary state (true/unset) across browser sessions.
+ * The state is stored in either localStorage or sessionStorage and exposed as a readonly boolean signal.
+ *
+ * @example Create a persistent binary state named "userConsent" in localStorage
+ * ```ts
+ * const consent = new BinaryPersistence("userConsent");
+ * console.assert(consent.current.value === false);
+ *
+ * consent.set();
+ * console.assert(consent.current.value === true);
+ *
+ * consent.toggle();
+ * console.assert(consent.current.value === false);
+ * ```
+ * @example Create a persistent binary state named "userConsent" in sessionStorage
+ * ```ts
+ * const consent = new BinaryPersistence("userConsent", "sessionStorage");
+ * console.assert(consent.current.value === false);
+ *
+ * consent.set();
+ * console.assert(consent.current.value === true);
+ *
+ * consent.toggle();
+ * console.assert(consent.current.value === false);
+ * ```
+ *
+ * The state persists across page reloads and syncs between tabs (for localStorage).
+ * When unset, the value is exposed as `false`.
+ * When set, the value is exposed as `true`.
+ *
+ * @property {ReadonlySignal<string>} current - A readonly signal of the current state
+ * @property {() => void} toggle - Toggles the state
+ * @property {() => void} set - Sets the state to true
+ * @method {() => void} reset - Reset and re-initialize the object without creating a new observable
+ */
 export class BinaryPersistence {
   #sig: Signal<1 | undefined>
   #disposes: Set<() => void>
@@ -102,10 +101,16 @@ export class BinaryPersistence {
     this.#putValueInMemory(globalThis[this.#type].getItem(this.#stateName))
 
     // then listen for any storage changes and update the in-memory value accordingly
-    globalThis.addEventListener('storage', this.#storageCB)
+    globalThis.addEventListener(
+      'storage',
+      (event: StorageEvent) => this.#storageCB(event),
+    )
 
     this.#disposes.add(() =>
-      globalThis.removeEventListener('storage', this.#storageCB)
+      globalThis.removeEventListener(
+        'storage',
+        (event: StorageEvent) => this.#storageCB(event),
+      )
     )
 
     // listen to changes in the private signal and put them in storage
@@ -123,10 +128,10 @@ export class BinaryPersistence {
   }
 
   reset() {
-    // resetting does not create new signal objects so their identity is stable
     this.#disposes.forEach((dispose) => dispose())
     this.#disposes.clear()
     globalThis[this.#type].removeItem(this.#stateName)
+    this.#sig.value = undefined
     this.#init()
   }
 }

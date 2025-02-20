@@ -1,5 +1,4 @@
 import { bundleWithWasm, configs } from 'jsr:@fairfox/deno-esbuild@0.0.21'
-//import { bundleWithWasm, configs } from '@fairfox/deno-esbuild'
 import { type Context, Hono } from 'jsr:@hono/hono'
 import { serveStatic } from 'jsr:@hono/hono/deno'
 import * as esbuild from 'https://deno.land/x/esbuild@v0.25.0/wasm.js'

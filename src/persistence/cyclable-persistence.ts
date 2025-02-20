@@ -12,6 +12,7 @@ export class CyclablePersistence<A extends Array<string | number>> {
   #stateName: string
   #currentIndex: Signal<number>
   #list: A
+  #default: 0
   current: ReadonlySignal<A[number] | undefined>
 
   constructor(
@@ -22,7 +23,8 @@ export class CyclablePersistence<A extends Array<string | number>> {
     this.#type = type
     this.#stateName = stateName
     this.#disposes = new Set()
-    this.#currentIndex = signal(0)
+    this.#default = 0
+    this.#currentIndex = signal(this.#default)
     this.#list = list
     this.current = computed(() => this.#list.at(this.#currentIndex.value))
 
@@ -37,7 +39,9 @@ export class CyclablePersistence<A extends Array<string | number>> {
 
   #putValueInMemory(val: string | null) {
     if (typeof val === 'string') {
-      this.#currentIndex.value = this.#list.indexOf(val) || 0
+      this.#currentIndex.value = this.#list.indexOf(val)
+    } else {
+      this.#currentIndex.value = this.#default
     }
   }
 
@@ -59,11 +63,17 @@ export class CyclablePersistence<A extends Array<string | number>> {
     this.#putValueInMemory(globalThis[this.#type].getItem(this.#stateName))
 
     // then listen for any storage changes and update the in-memory value accordingly
-    globalThis.addEventListener('storage', this.#storageCB)
+    globalThis.addEventListener(
+      'storage',
+      (event: StorageEvent) => this.#storageCB(event),
+    )
 
-    this.#disposes.add(() => {
-      globalThis.removeEventListener('storage', this.#storageCB)
-    })
+    this.#disposes.add(() =>
+      globalThis.removeEventListener(
+        'storage',
+        (event: StorageEvent) => this.#storageCB(event),
+      )
+    )
 
     // listen to changes in the "result" computed and put them in storage
     // it is important that this step is done after getting the value from storage
@@ -79,10 +89,12 @@ export class CyclablePersistence<A extends Array<string | number>> {
 
   incIndex() {
     const len = this.#list.length
-    if (len > 1) {
-      this.#currentIndex.value = this.#currentIndex.peek() < len - 1
-        ? this.#currentIndex.peek() + 1
-        : 0
+    if (len === 0) return
+    else if (len === 1) {
+      this.#currentIndex.value = 0
+    } else {
+      const cur = this.#currentIndex.peek()
+      this.#currentIndex.value = cur < len - 1 ? cur + 1 : 0
     }
   }
 
@@ -96,10 +108,10 @@ export class CyclablePersistence<A extends Array<string | number>> {
   }
 
   reset() {
-    // resetting does not create new signal objects so their identity is stable
     this.#disposes.forEach((dispose) => dispose())
     this.#disposes.clear()
     globalThis[this.#type].removeItem(this.#stateName)
+    this.#currentIndex.value = this.#default
     this.#init()
   }
 }

@@ -8,12 +8,6 @@ import {
 
 type SN = string | number
 
-// primitive means a string, number, undefined or null
-// this could be useful for holding a string for a particular 'key'
-// example: `const state = {
-// 'my-file.ts': 'console.log('hello')'
-// }
-//
 // 'unset' | (string | number)
 // undefined | value
 export class PrimitivePersistence {
@@ -21,6 +15,7 @@ export class PrimitivePersistence {
   #disposes: Set<() => void>
   #type: 'localStorage' | 'sessionStorage'
   #stateName: string
+  #default: undefined
   current: ReadonlySignal<SN | undefined>
 
   constructor(
@@ -29,7 +24,7 @@ export class PrimitivePersistence {
   ) {
     this.#type = type
     this.#stateName = stateName
-    this.#sig = signal(undefined)
+    this.#sig = signal(this.#default)
     this.#disposes = new Set()
     this.current = computed(() => this.#sig.value)
 
@@ -49,7 +44,7 @@ export class PrimitivePersistence {
         this.#sig.value = parsedVal
       }
     } else {
-      this.#sig.value = undefined
+      this.#sig.value = this.#default
     }
   }
 
@@ -57,7 +52,7 @@ export class PrimitivePersistence {
     try {
       globalThis[this.#type].setItem(
         this.#stateName,
-        JSON.stringify(val),
+        typeof val === 'string' ? val : JSON.stringify(val),
       )
     } catch {
       console.error(
@@ -77,10 +72,16 @@ export class PrimitivePersistence {
     this.#putValueInMemory(globalThis[this.#type].getItem(this.#stateName))
 
     // then listen for any storage changes and update the in-memory value accordingly
-    globalThis.addEventListener('storage', this.#storageCB)
+    globalThis.addEventListener(
+      'storage',
+      (event: StorageEvent) => this.#storageCB(event),
+    )
 
     this.#disposes.add(() =>
-      globalThis.removeEventListener('storage', this.#storageCB)
+      globalThis.removeEventListener(
+        'storage',
+        (event: StorageEvent) => this.#storageCB(event),
+      )
     )
 
     // listen to changes in the private signal and put them in storage
@@ -98,6 +99,7 @@ export class PrimitivePersistence {
     this.#disposes.forEach((dispose) => dispose())
     this.#disposes.clear()
     globalThis[this.#type].removeItem(this.#stateName)
+    this.#sig.value = this.#default
     this.#init()
   }
 }
