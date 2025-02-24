@@ -1,84 +1,86 @@
-import { type FunctionComponent } from 'preact'
+import { Fragment, type FunctionComponent } from 'preact'
 import classes from '@/pages/code/code.module.css'
 import {
   NavigateToHomeBtn,
   ToggleColorThemeBtn,
   ToggleThemeBtn,
 } from '@/actions-ui/mod.ts'
-import {
-  signal,
-  useComputed,
-  useSignal,
-  useSignalEffect,
-} from '@preact/signals'
+import { useSignal, useSignalEffect } from '@preact/signals'
 import { onMount, useStableCallback } from '@/hooks/mod.ts'
-import { runBenchmarkSuite } from '@/pages/code/benchmark.ts'
 import { runTestSuite } from '@/pages/code/test-runner.ts'
+import { runBenchmarkSuite } from '@/pages/code/benchmark.ts'
 import { useStores } from '@/contexts/stores.tsx'
 
-const currentFileName = signal<string>('script.ts')
-
-const defaultRunFunction =
-  `const defaultArr = new Array(999999).fill(undefined).map(i => i)
-
-function run(arr: number[] = defaultArr): number {
-    let sum = 0
-    for (let i = 0; i < arr.length; i++) {
-            sum += arr[i]
-    }
-    return sum;
-}`
-
-const defaultTestFunction =
-  `await test('run function should sum arr items', () => {
-    const arr = [0, 1, 2]
-    const result = run(arr);
-    if (result !== 3) {
-        throw new Error("Expected '3' but got '" + result + "'");
-    }
-});
-
-await test('run function should return a number', () => {
-    const arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    const result = run(arr);
-    if (typeof result !== 'number') {
-        throw new Error("Expected number but got '" + typeof result + "'");
-    }
-});
-`
-
-const currentProject = signal<
-  Record<string, string>
->({
-  'script.ts': defaultRunFunction,
-  'script.test.ts': defaultTestFunction,
-})
-
 function MultiTabEditor() {
-  const { editorStore, transpilerStore } = useStores()
+  const { editorStore, transpilerStore, projectsStore } = useStores()
   const showTestResults = useSignal<boolean>(false)
   const testResults = useSignal<string | undefined>()
   const benchmarkResults = useSignal<string | undefined>()
-  const fileNames = useComputed<string[]>(() =>
-    Object.keys(currentProject.value)
-  )
 
   onMount(() => {
-    if (!editorStore.ready.value) {
-      editorStore.current.fetch()
-    }
+    editorStore.fetch()
     if (!transpilerStore.ready.value) {
       transpilerStore.current.fetch()
     }
   })
 
+  const save = useStableCallback(() => {
+    projectsStore.updateProjectFileContents(editorStore.getValue())
+  })
+
+  const addFile = useStableCallback(() => {
+    const name = globalThis.prompt(
+      'Please enter the new file name with the extension',
+    )
+    if (name) {
+      projectsStore.createFile(name)
+    }
+  })
+
+  const renameFile = useStableCallback((index: number) => {
+    const name = globalThis.prompt(
+      'Please enter the new file name with the extension',
+      projectsStore.currentFile.peek()?.fileName,
+    )
+    if (name) {
+      projectsStore.renameFile(index, name)
+    }
+  })
+
+  const createProject = useStableCallback(() => {
+    const name = globalThis.prompt(
+      'Please enter the new project name with the extension',
+    )
+    if (name) {
+      projectsStore.createProject(name)
+    }
+  })
+
+  const deleteProject = useStableCallback(() => {
+    if (globalThis.confirm()) {
+      projectsStore.deleteProject()
+    }
+  })
+
+  const deleteFile = useStableCallback((index: number) => {
+    if (globalThis.confirm()) {
+      projectsStore.deleteFile(index)
+    }
+  })
+
+  const resetAll = useStableCallback(() => {
+    if (globalThis.confirm()) {
+      projectsStore.reset()
+    }
+  })
+
   const runBenchmark = useStableCallback(async () => {
-    if (transpilerStore.ready.value && editorStore.editor.value) {
-      currentProject.value[currentFileName.value] = editorStore.getValue()
+    if (transpilerStore.ready.value && editorStore.ready.value) {
+      save()
 
       try {
         const runCode = await transpilerStore.transform(
-          currentProject.value['script.ts'],
+          projectsStore.currentProject.value?.files[0]?.fileContents || '',
         )
         const fn = new Function(runCode + '\nreturn run;')()
 
@@ -94,15 +96,15 @@ function MultiTabEditor() {
   })
 
   const runTest = useStableCallback(async () => {
-    if (editorStore.editor.value && transpilerStore.ready.value) {
-      currentProject.value[currentFileName.value] = editorStore.getValue()
+    if (editorStore.ready.value && transpilerStore.ready.value) {
+      save()
 
       try {
         const runCode = await transpilerStore.transform(
-          currentProject.value['script.ts'],
+          projectsStore.currentProject.value?.files[0]?.fileContents || '',
         )
         const testCode = await transpilerStore.transform(
-          currentProject.value['script.test.ts'],
+          projectsStore.currentProject.value?.files[1]?.fileContents || '',
         )
 
         const moduleCode = `return async function() {
@@ -110,17 +112,17 @@ function MultiTabEditor() {
     async function test(name, fn) {
         try {
             await fn()
-	    results.passed++
-	    results.details.push({ name, status: 'passed' })
+            results.passed++
+            results.details.push({ name, status: 'passed' })
         } catch (error) {
-	    results.failed++
-	    results.details.push({
-		name,
-		status: 'failed',
-		error: error instanceof Error
-			? error.message
-			: '',
-	    })
+            results.failed++
+            results.details.push({
+                name,
+                status: 'failed',
+                error: error instanceof Error
+                    ? error.message
+                    : '',
+            })
         }
         results.total++
     }
@@ -144,35 +146,82 @@ return results;
   })
 
   useSignalEffect(() => {
-    // Initialize editor when Monaco is ready
+    // NOTE: If editor is not created then create it, otherwise set the contents
     if (editorStore.ready.value) {
+      const currentFile = projectsStore.currentFile.value
+      editorStore.setValue(currentFile?.fileContents || '')
+    } else {
       const editorElement = document.querySelector('#editor') as HTMLElement
       if (editorElement) {
         editorStore.createEditor(editorElement)
-        editorStore.setValue(currentProject.value[currentFileName.value])
       }
     }
   })
 
+  const handleProjectChange = (e: Event) => {
+    save()
+
+    const target = e.target as HTMLSelectElement
+
+    if (target.value === 'create-project') {
+      createProject()
+    } else {
+      projectsStore.currentProjectName.value = target.value
+      projectsStore.currentFileIndex.value = 0
+      editorStore.setValue(projectsStore.currentFile.value?.fileContents || '')
+    }
+  }
+
+  const handleFileChange = (index: number) => {
+    save()
+    projectsStore.currentFileIndex.value = index
+  }
+
   return (
     <>
-      {fileNames.value.map((fileName: string) => (
-        <button
-          key={fileName}
-          disabled={fileName ===
-            currentFileName.value}
-          onClick={() => {
-            if (editorStore.editor.value) {
-              currentProject.value[currentFileName.value] = editorStore
-                .getValue()
-              currentFileName.value = fileName
-              editorStore.setValue(currentProject.value[fileName])
-            }
-          }}
+      <div class={classes.controls}>
+        <select
+          class={classes.select}
+          value={projectsStore.currentProjectName.value}
+          onChange={handleProjectChange}
         >
-          {fileName}
-        </button>
-      ))}
+          <option key='create-project' value='create-project'>
+            create project
+          </option>
+          {projectsStore.projects.value.map((project) => (
+            <option key={project.name} value={project.name}>
+              {project.name}
+            </option>
+          ))}
+        </select>
+        <button onClick={resetAll}>Reset All</button>
+        <button onClick={save}>Save</button>
+        <button onClick={deleteProject}>delete project</button>
+      </div>
+
+      <div class={classes.fileControls}>
+        <div>
+          {projectsStore.currentProject.value?.files.map((file, index) => {
+            return (
+              <Fragment key={file.fileName}>
+                <button
+                  disabled={index ===
+                    projectsStore.currentFileIndex.value}
+                  onClick={() => handleFileChange(index)}
+                >
+                  {file.fileName}
+                </button>
+                <button onClick={() => renameFile(index)}>r</button>
+                <button onClick={() => deleteFile(index)}>x</button>
+              </Fragment>
+            )
+          })}
+        </div>
+        <div>
+          <button onClick={() => addFile()}>add file</button>
+        </div>
+      </div>
+
       <div
         id='editor'
         style='height: 45vh; overflow: hidden; border-radius: 5px; padding-top: 8px; margin-bottom: 16px; background: var(--vscode-editor-background, #1e1e1e);'

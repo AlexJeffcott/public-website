@@ -19,16 +19,17 @@ export class SerializablePersistence<A> {
   #disposes: Set<() => void>
   #type: 'localStorage' | 'sessionStorage'
   #stateName: string
-  #default: undefined
+  #default: A | undefined
   current: ReadonlySignal<A | undefined>
 
   constructor(
     stateName: string,
+    initialValue: A | undefined,
     type: 'localStorage' | 'sessionStorage' = 'localStorage',
   ) {
     this.#type = type
     this.#stateName = stateName
-    this.#default = undefined
+    this.#default = initialValue
     this.#sig = signal(this.#default)
     this.#disposes = new Set()
     this.current = computed(() => this.#sig.value)

@@ -1,0 +1,17 @@
+{
+  "name": "default",
+  "files": [
+    {
+      "fileName": "script.ts",
+      "fileContents": "const defaultArr = new Array(999999).fill(undefined).map(i => i)\n\nfunction run(arr: number[] = defaultArr): number {\n    let sum = 0\n    for (let i = 0; i < arr.length; i++) {\n            sum += arr[i]\n    }\n    return sum;\n}"
+    },
+    {
+      "fileName": "script.test.ts",
+      "fileContents": "await test('run function should sum arr items', () => {\n    const arr = [0, 1, 2]\n    const result = run(arr);\n    if (result !== 3) {\n        throw new Error(\"Expected '3' but got '\" + result + \"'\");\n    }\n});\n\nawait test('run function should return a number', () => {\n    const arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]\n    const result = run(arr);\n    if (typeof result !== 'number') {\n        throw new Error(\"Expected number but got '\" + typeof result + \"'\");\n    }\n});"
+    },
+    {
+      "fileName": "script1.ts",
+      "fileContents": "# TODOs\n- [ ] remove files\n- [ ] add reset button\n- [ ] add files\n- [ ] rename files\n- [ ] rename projects\n- [ ] add projects\n- [ ] remove projects\n- [ ] support different languages based on file name"
+    }
+  ]
+}

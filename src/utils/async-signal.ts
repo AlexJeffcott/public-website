@@ -3,6 +3,7 @@ import { type Signal, signal } from '@preact/signals'
 type Status = 'initial' | 'loading' | 'errored' | 'fetched' | 'cancelled'
 
 export type CreateHandlers<T> = () => [() => Promise<T>, () => void]
+
 type Logs<T> = Array<T | string>
 
 export type AsyncSignal<T> = {
@@ -60,7 +61,6 @@ export function asyncSignal<T>() {
           logs.push(res)
         })
         .catch((err) => {
-          console.log('!!', err.name)
           if (err.name === 'AbortError') {
             status.value = 'cancelled'
             error.value = 'fetch aborted'

@@ -7,6 +7,19 @@
   padding: 1rem;
 }
 
+.header {
+  display: grid;
+  grid-template-rows: 100%;
+  grid-template-columns: 1fr min-content min-content;
+  align-items: center;
+  justify-content: end;
+}
+
+.fileControls {
+  display: flex;
+  justify-content: space-between;
+}
+
 .results {
   display: grid;
   overflow: hidden;
@@ -25,14 +38,6 @@
 
 .results div {
   padding-left: 8px;
-}
-
-.header {
-  display: grid;
-  grid-template-rows: 100%;
-  grid-template-columns: 1fr min-content min-content;
-  align-items: center;
-  justify-content: end;
 }
 
 .footer {}
