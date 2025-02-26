@@ -13,6 +13,7 @@
   grid-template-columns: 1fr min-content min-content;
   align-items: center;
   justify-content: end;
+  gap: 8px;
 }
 
 .content {

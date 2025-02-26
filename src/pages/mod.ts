@@ -1,2 +1,3 @@
 export * from '@/pages/code/mod.tsx'
 export * from '@/pages/home/mod.tsx'
+export * from '@/pages//gen-img/mod.tsx'

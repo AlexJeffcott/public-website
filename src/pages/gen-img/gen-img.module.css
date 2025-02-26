@@ -1,0 +1,76 @@
+.page {
+  height: 100vh;
+  width: 100vw;
+  display: grid;
+  grid-template-rows: min-content min-content 1fr min-content;
+  grid-template-columns: 1fr;
+  padding: 1rem;
+  gap: 16px;
+}
+
+.header {
+  display: grid;
+  grid-template-rows: 100%;
+  grid-template-columns: 1fr min-content min-content;
+  align-items: center;
+  justify-content: end;
+  gap: 8px;
+}
+
+.content {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: min(100%, 500px);
+  align-items: start;
+  justify-items: center;
+  justify-content: center;
+}
+
+.aiForm {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-areas:
+    'size style quality'
+    'prompt prompt prompt'
+    'btn btn btn';
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.aiForm.genImg select[name='size'] {
+  grid-area: size;
+}
+
+.aiForm.genImg select[name='style'] {
+  grid-area: style;
+}
+
+.aiForm.genImg label::has(input[name=quality]) {
+  grid-area: quality;
+}
+
+.aiForm.genImg label input[name='quality'] {
+  margin-right: 8px;
+}
+
+.aiForm.genImg textarea[name='prompt'] {
+  grid-area: prompt;
+}
+
+.aiForm.genImg button[type='submit'] {
+  grid-area: btn;
+}
+
+.resultContainer {
+  display: grid;
+  gap: 16px;
+}
+
+.imgResult {
+  width: 100%;
+  max-width: 500px;
+}
+
+.footer {}

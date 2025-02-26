@@ -1,4 +1,4 @@
-import { Fragment, type FunctionComponent } from 'preact'
+import { Fragment, type FunctionalComponent } from 'preact'
 import classes from '@/pages/code/code.module.css'
 import {
   NavigateToHomeBtn,
@@ -11,7 +11,7 @@ import { runTestSuite } from '@/pages/code/test-runner.ts'
 import { runBenchmarkSuite } from '@/pages/code/benchmark.ts'
 import { useStores } from '@/contexts/stores.tsx'
 
-function MultiTabEditor() {
+const MultiTabEditor: FunctionalComponent = () => {
   const { editorStore, transpilerStore, projectsStore } = useStores()
   const showTestResults = useSignal<boolean>(false)
   const testResults = useSignal<string | undefined>()
@@ -242,15 +242,15 @@ return results;
   )
 }
 
-const TestResults: FunctionComponent = ({ children }) => {
+const TestResults: FunctionalComponent = ({ children }) => {
   return <div>{children}</div>
 }
 
-const BenchmarkResults: FunctionComponent = ({ children }) => {
+const BenchmarkResults: FunctionalComponent = ({ children }) => {
   return <div>{children}</div>
 }
 
-export const CodePage: FunctionComponent = () => {
+export const CodePage: FunctionalComponent = () => {
   return (
     <main class={classes.page}>
       <header class={classes.header}>
@@ -258,6 +258,7 @@ export const CodePage: FunctionComponent = () => {
         <ToggleThemeBtn />
         <ToggleColorThemeBtn />
       </header>
+      <h1>Write, test and benchmark Typescript</h1>
       <div>
         <MultiTabEditor />
       </div>

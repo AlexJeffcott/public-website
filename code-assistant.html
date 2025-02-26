@@ -58,74 +58,81 @@
   </head>
   <body>
     <script>
-      const apiKey = localStorage.getItem('openaiApiKey') || '';
+      const apiKey = localStorage.getItem('openaiApiKey') || ''
 
       if (!apiKey) {
-        const key = prompt('Please enter your Open AI API key:');
-        if (key) saveApiKey(key);
+        const key = prompt('Please enter your Open AI API key:')
+        if (key) saveApiKey(key)
       }
 
       function saveApiKey(key) {
-        localStorage.setItem('openaiApiKey', key);
-        apiKey.value = key;
+        localStorage.setItem('openaiApiKey', key)
+        apiKey.value = key
       }
     </script>
 
     <script type="module">
-      import { html, render, signal } from 'preact-stand-alone';
+      import { html, render, signal } from 'preact-stand-alone'
 
-      const apiKey = signal(localStorage.getItem('openaiApiKey') || '');
-      const prompt = signal('');
-      const response = signal('');
-      const error = signal('');
-      const isLoading = signal(false);
+      const apiKey = signal(localStorage.getItem('openaiApiKey') || '')
+      const prompt = signal('')
+      const response = signal('')
+      const error = signal('')
+      const isLoading = signal(false)
 
-      const systemPrompt = `You are an expert TypeScript web engineer who specializes in Preact and signals.
+      const systemPrompt =
+        `You are an expert TypeScript web engineer who specializes in Preact and signals.
 Key principles:
 - Be precise and concise
 - Only explain when asked
 - Favor Preact and signals over other solutions
 - Avoid dependencies unless specifically requested
 - Write clean, type-safe code
-- Focus on modern web standards and best practices`;
+- Focus on modern web standards and best practices`
 
       async function generateResponse() {
         if (!prompt.value.trim()) {
-          error.value = 'Please enter a prompt';
-          return;
+          error.value = 'Please enter a prompt'
+          return
         }
 
-        isLoading.value = true;
-        error.value = '';
+        isLoading.value = true
+        error.value = ''
 
         try {
-          const result = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${apiKey.value}`,
+          const result = await fetch(
+            'https://api.openai.com/v1/chat/completions',
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey.value}`,
+              },
+              body: JSON.stringify({
+                model: 'gpt-4o',
+                messages: [
+                  { role: 'system', content: systemPrompt },
+                  { role: 'user', content: prompt.value },
+                ],
+                temperature: 0.7,
+              }),
             },
-            body: JSON.stringify({
-              model: 'gpt-4o',
-              messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: prompt.value }
-              ],
-              temperature: 0.7,
-            })
-          });
+          )
 
           if (!result.ok) {
-            const errorData = await result.json();
-            throw new Error(errorData.error?.message || `HTTP error! status: ${result.status}`);
+            const errorData = await result.json()
+            throw new Error(
+              errorData.error?.message ||
+                `HTTP error! status: ${result.status}`,
+            )
           }
 
-          const data = await result.json();
-          response.value = data.choices[0].message.content;
+          const data = await result.json()
+          response.value = data.choices[0].message.content
         } catch (err) {
-          error.value = `Error: ${err.message}`;
+          error.value = `Error: ${err.message}`
         } finally {
-          isLoading.value = false;
+          isLoading.value = false
         }
       }
 
@@ -144,18 +151,24 @@ Key principles:
               onClick=${generateResponse} 
               disabled=${isLoading.value || !prompt.value.trim()}
             >
-              ${isLoading.value ? 'Generating response...' : 'Get Answer'}
+              ${
+          isLoading.value ? 'Generating response...' : 'Get Answer'
+        }
             </button>
 
-            ${error.value && html`<div class="error">${error.value}</div>`}
-            ${response.value && html`
+            ${
+          error.value && html`<div class="error">${error.value}</div>`
+        }
+            ${
+          response.value && html`
               <pre><code>${response.value}</code></pre>
-            `}
+            `
+        }
           </div>
-        `;
+        `
       }
 
-      render(html`<${App} />`, document.body);
+      render(html`<${App} />`, document.body)
     </script>
   </body>
 </html>

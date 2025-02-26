@@ -29,6 +29,7 @@
     "@/": "./src/",
     "@/global.css": "./src/types/css.d.ts",
     "@/pages/code/code.module.css": "./src/types/css.module.d.ts",
+    "@/pages/gen-img/gen-img.module.css": "./src/types/css.module.d.ts",
     "@/ui-components/btn/btn.module.css": "./src/types/css.module.d.ts",
     "@/pages/home/home.module.css": "./src/types/css.module.d.ts",
     "@preact/signals": "https://esm.sh/*@preact/signals@2.0.0",
@@ -39,4 +40,3 @@
     "preact/": "https://esm.sh/*preact@10.25.4/"
   }
 }
-

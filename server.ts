@@ -3,8 +3,8 @@ import { type Context, Hono } from 'jsr:@hono/hono'
 import { serveStatic } from 'jsr:@hono/hono/deno'
 import * as esbuild from 'https://deno.land/x/esbuild@v0.25.0/wasm.js'
 import { contentType } from 'jsr:@std/media-types'
-import {basename} from "jsr:@std/path/unstable-basename";
-import {extname} from "jsr:@std/path/unstable-extname";
+import { basename } from 'jsr:@std/path/unstable-basename'
+import { extname } from 'jsr:@std/path/unstable-extname'
 
 const app = new Hono()
 
@@ -53,7 +53,6 @@ let styles = ''
 
 const fileTypes = ['jpg', 'jpeg', 'png', 'woff2']
 
-
 for (const out of result.outputFiles) {
   const fileName = basename(out.path) || 'undefined.js'
   const ext = extname(fileName)
@@ -65,7 +64,7 @@ for (const out of result.outputFiles) {
         !fileTypes.includes(ext || 'txt') ? [out.text] : [out.contents.buffer],
         fileName,
         { type: contentType(ext || 'txt') },
-      )
+      ),
     ))
 
   if (ext === '.css') {
@@ -75,33 +74,39 @@ for (const out of result.outputFiles) {
   }
 }
 
-
-
-app.use('/static/*', serveStatic({
-root: './',
-onNotFound: (path, c) => {
-console.log(`${path} was not found when you tried to access ${c.req.path}`)
-}
-}))
+app.use(
+  '/static/*',
+  serveStatic({
+    root: './',
+    onNotFound: (path, c) => {
+      console.log(
+        `${path} was not found when you tried to access ${c.req.path}`,
+      )
+    },
+  }),
+)
 
 app.get('*', (c: Context) => {
+  c.header('Cache-Control', 'no-store, no-cache, must-revalidate')
+
   return c.html(
-    `<html>
-        <head>
-          <title>Alex Jeffcott</title>
-          <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-   <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+    `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Alex Jeffcott</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
-          ${styles}
+    ${styles}
     <link rel="manifest" href="/static/site.webmanifest">
-        </head>
-        <body>
-        ${scripts}
-        </body>
-      </html>`,
+  </head>
+  <body>
+    ${scripts}
+  </body>
+</html>`,
   )
 })
-
 
 Deno.serve({ port: 8000 }, app.fetch)

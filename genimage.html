@@ -68,39 +68,39 @@
   </head>
   <body>
     <script>
-      const apiKey = localStorage.getItem('openaiApiKey') || '';
+      const apiKey = localStorage.getItem('openaiApiKey') || ''
 
       if (!apiKey) {
-        const key = prompt('Please enter your Open AI API key:');
-        if (key) saveApiKey(key);
+        const key = prompt('Please enter your Open AI API key:')
+        if (key) saveApiKey(key)
       }
 
       function saveApiKey(key) {
-        localStorage.setItem('openaiApiKey', key);
-        apiKey.value = key;
+        localStorage.setItem('openaiApiKey', key)
+        apiKey.value = key
       }
     </script>
 
     <script type="module">
-      import { html, render, signal } from 'preact-stand-alone';
+      import { html, render, signal } from 'preact-stand-alone'
 
-      const apiKey = signal(localStorage.getItem('openaiApiKey') || '');
-      const prompt = signal('');
-      const imageResult = signal('');
-      const error = signal('');
-      const isLoading = signal(false);
-      const size = signal('1024x1024');
-      const style = signal('vivid');
-      const quality = signal('');
+      const apiKey = signal(localStorage.getItem('openaiApiKey') || '')
+      const prompt = signal('')
+      const imageResult = signal('')
+      const error = signal('')
+      const isLoading = signal(false)
+      const size = signal('1024x1024')
+      const style = signal('vivid')
+      const quality = signal('')
 
       function generateImage() {
         if (!prompt.value.trim()) {
-          error.value = 'Please enter a prompt';
-          return;
+          error.value = 'Please enter a prompt'
+          return
         }
 
-        isLoading.value = true;
-        error.value = '';
+        isLoading.value = true
+        error.value = ''
 
         fetch('https://api.openai.com/v1/images/generations', {
           method: 'POST',
@@ -118,19 +118,20 @@
           }),
         })
           .then((response) => {
-            if (!response.ok)
-              throw new Error(`HTTP error! status: ${response.status}`);
-            return response.json();
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`)
+            }
+            return response.json()
           })
           .then((data) => {
-            imageResult.value = data.data[0].url;
+            imageResult.value = data.data[0].url
           })
           .catch((err) => {
-            error.value = `Error: ${err.message}`;
+            error.value = `Error: ${err.message}`
           })
           .finally(() => {
-            isLoading.value = false;
-          });
+            isLoading.value = false
+          })
       }
 
       function App() {
@@ -184,17 +185,23 @@
             ></textarea>
 
             <button onClick=${generateImage} disabled=${isLoading.value}>
-              ${isLoading.value ? 'Generating image...' : 'Generate Image'}
+              ${
+          isLoading.value ? 'Generating image...' : 'Generate Image'
+        }
             </button>
 
-            ${error.value && html`<div class="error">${error.value}</div>`}
-            ${imageResult.value &&
-            html`<img class="imgResult" src=${imageResult.value} />`}
+            ${
+          error.value && html`<div class="error">${error.value}</div>`
+        }
+            ${
+          imageResult.value &&
+          html`<img class="imgResult" src=${imageResult.value} />`
+        }
           </div>
-        `;
+        `
       }
 
-      render(html`<${App} />`, document.body);
+      render(html`<${App} />`, document.body)
     </script>
   </body>
 </html>
