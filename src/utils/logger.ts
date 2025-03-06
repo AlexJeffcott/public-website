@@ -37,7 +37,7 @@ export class Logger {
         console.debug(logMessage)
         break
       case 'info':
-        console.info(logMessage)
+        // console.info(logMessage)
         break
       case 'warn':
         console.warn(logMessage)

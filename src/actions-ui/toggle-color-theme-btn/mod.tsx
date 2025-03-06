@@ -3,29 +3,6 @@ import { useEventDispatcher, useStableCallback } from '@/hooks/mod.ts'
 import { type FunctionalComponent } from 'preact'
 import * as ToggleColorTheme from '@/actions/toggle-color-theme/mod.ts'
 import { useStores } from '@/contexts/stores.tsx'
-import { type Signal } from '@preact/signals'
-import { type ColorTheme } from '@/types/theme.ts'
-
-const ColorThemeIcon: FunctionalComponent<{
-  colorTheme: Signal<ColorTheme>
-}> = ({ colorTheme }) => {
-  switch (colorTheme.value) {
-    case 'red':
-      return '🔴'
-    case 'blue':
-      return '🔵'
-    case 'green':
-      return '🟢'
-    case 'orange':
-      return '🟠'
-    case 'purple':
-      return '🟣'
-    case 'grey':
-      return '⚪'
-    default:
-      return '🔵'
-  }
-}
 
 export const ToggleColorThemeBtn: FunctionalComponent<{ cb?: () => void }> = ({
   cb,
@@ -51,7 +28,7 @@ export const ToggleColorThemeBtn: FunctionalComponent<{ cb?: () => void }> = ({
       onPress={onPress}
       title={`Current colortheme: ${uiStore.colorTheme.value}`}
     >
-      <ColorThemeIcon colorTheme={uiStore.colorTheme} />
+      {uiStore.colorTheme}
     </Btn>
   )
 }

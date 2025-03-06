@@ -15,7 +15,7 @@ async function makeBundle(): Promise<
 > {
   const cfg = await configs.forPreact(
     {
-      entryPoints: ['./src/main.tsx'],
+      entryPoints: ['./src/main.tsx', './src/workers/fs-worker.ts'],
       write: false,
     },
     'deno.json',
@@ -70,7 +70,9 @@ for (const out of result.outputFiles) {
   if (ext === '.css') {
     styles = `${styles}\n<link rel="stylesheet" type="text/css" href="${path}">`
   } else if (ext === '.js' || ext === '.mjs') {
-    scripts = `${scripts}\n<script type="module" src="${path}"></script>`
+    if (!fileName.includes('worker.js')) {
+      scripts = `${scripts}\n<script type="module" src="${path}"></script>`
+    }
   }
 }
 

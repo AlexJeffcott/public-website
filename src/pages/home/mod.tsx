@@ -1,13 +1,14 @@
-import { type FunctionComponent } from 'preact'
+import { type FunctionalComponent } from 'preact'
 import classes from '@/pages/home/home.module.css'
 import {
   NavigateToCodeBtn,
+  NavigateToFSBtn,
   NavigateToGenImgBtn,
   ToggleColorThemeBtn,
   ToggleThemeBtn,
 } from '@/actions-ui/mod.ts'
 
-export const HomePage: FunctionComponent = () => {
+export const HomePage: FunctionalComponent = () => {
   return (
     <main class={classes.page}>
       <header class={classes.header}>
@@ -20,6 +21,7 @@ export const HomePage: FunctionComponent = () => {
         <nav class={classes.nav}>
           <NavigateToCodeBtn />
           <NavigateToGenImgBtn />
+          <NavigateToFSBtn />
         </nav>
       </div>
       <footer class={classes.footer}>Alex Jeffcott</footer>

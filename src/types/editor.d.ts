@@ -1,6 +1,6 @@
 export type ProjectFile = {
   fileName: string
-  fileContents: string
+  fileContents: string | ArrayBuffer
 }
 
 export type Project = {

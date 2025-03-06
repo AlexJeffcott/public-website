@@ -43,7 +43,7 @@ export class ProjectsStore extends BaseStore {
       return this.currentProject.value?.files.at(this.currentFileIndex.value)
     })
 
-    this.logger.info('UIStore initialized', {
+    this.logger.info('ProjectsStore initialized', {
       currentProject: this.currentProject.value,
     })
 

@@ -2,6 +2,25 @@
 
 ## Many things to do!
 
+### Featrues
+
+- [ ] auth
+- [ ] client-side encryption
+- [ ] all the ai stuff
+- [ ] better writing - unify a beautiful experience whether coding or journaling
+      - vim bindings? - how can I include diagrams / doodles?
+- [ ] todos and reminders
+- [ ] installable
+- [ ] offline first
+- [ ] mobile friendly
+- [ ] text chat
+- [ ] video chat
+- [ ] memorisation tools
+- [ ] flash cards
+- [ ] quizes (arithmetic, spelling, general knowledge) (text, audio, images)
+      (html to html)
+- [ ] transcription to summarisation
+
 ### Browser Client
 
 - [ ] make code editor buttons look nicer
@@ -15,6 +34,7 @@
 - [ ] add text-to-speech gen page
 - [ ] add a journal page (model after bullet journal)
 - [ ] add error handling to gen img form
+- [ ] add prompt to enter api keys
 
 ```typescript
 // see https://shiki.style/guide/bundles#fine-grained-bundle
@@ -34,8 +54,9 @@ https://shiki.style/packages/twoslash#recipes
 ### Server
 
 - [ ] nail down CSP
-- [ ] only invalidate cache when content hash changes
-- [ ] use my own esm cdn for my vendored dependencies
+- [ ] only invalidate cache when content hash changes?
+- [ ] use my own esm cdn for my vendored dependencies?
+- [ ] serve deps like esbuild via server or via cdn?
 
 ```typescript
 // cached
@@ -61,3 +82,7 @@ c.header(
     "worker-src 'self';",
 )
 ```
+
+### Infrastructure
+
+- [ ] should I take care of this or just use deno deploy?

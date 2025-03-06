@@ -3,8 +3,10 @@ import { UIStore } from '@/stores/ui.ts'
 import { RouterStore } from '@/stores/router.ts'
 import { EditorStore } from '@/stores/editor.ts'
 import { TranspilerStore } from '@/stores/transpiler.ts'
+import { FinderStore } from '@/stores/finder.ts'
 
 export type Stores = {
+  finderStore: FinderStore
   projectsStore: ProjectsStore
   uiStore: UIStore
   routerStore: RouterStore
@@ -14,6 +16,7 @@ export type Stores = {
 
 export function createStores(): Stores {
   return {
+    finderStore: new FinderStore(),
     projectsStore: new ProjectsStore(),
     uiStore: new UIStore(),
     routerStore: new RouterStore(),
