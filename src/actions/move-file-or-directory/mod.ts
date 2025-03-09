@@ -7,7 +7,7 @@ type Details = {
   cb?: () => void
   sourceFSNode: FSNode
   destinationFSNode: FSNode
-  eventType: 'copyfileordirectory'
+  eventType: 'movefileordirectory'
 }
 
 export function isDetails(
@@ -15,7 +15,7 @@ export function isDetails(
 ): d is Details {
   return (
     isObject(d) &&
-    d.eventType === 'copyfileordirectory' &&
+    d.eventType === 'movefileordirectory' &&
     (d.cb === undefined || typeof d.cb === 'function') &&
     isFSNode(d.sourceFSNode) &&
     isFSNode(d.destinationFSNode)
@@ -25,7 +25,7 @@ export function isDetails(
 export class ActionEvent extends Event {
   details?: Details
   constructor(details: Details) {
-    super('copyfileordirectory', { bubbles: true })
+    super('movefileordirectory', { bubbles: true })
     this.details = details
   }
 }
@@ -41,7 +41,7 @@ export function createCB({
     const details = e.details
     if (!finderStore || !details) {
       handleError(
-        'the copyfileordirectory action needs a finderStore and details.',
+        'the movefileordirectory action needs a finderStore and details.',
       )
       return
     }
