@@ -10,53 +10,59 @@ import {
   ToggleThemeBtn,
 } from '@/actions-ui/mod.ts'
 import { cls, encodeStringForUrl } from '@/utils/mod.ts'
+import { onMount } from '@/hooks/mod.ts'
 import { useStores } from '@/contexts/stores.tsx'
 import { type FSNode } from '@/types/fs.ts'
 
 export const FSPage: FunctionalComponent = () => {
   const { finderStore } = useStores()
-
   return (
-    <>
-      <main class={classes.page}>
-        <header class={classes.header}>
-          <NavigateToHomeBtn />
-          <ToggleThemeBtn />
-          <ToggleColorThemeBtn />
-        </header>
-        <div class={classes.content}>
-          <div class={classes.fileTreeSection}>
-            <div class={classes.fileTree}>
-              <FileTree fsNode={finderStore.ls.value} />
-            </div>
-            <CreateFileOrDirectory />
+    <main class={classes.page}>
+      <header class={classes.header}>
+        <NavigateToHomeBtn />
+        <ToggleThemeBtn />
+        <ToggleColorThemeBtn />
+      </header>
+      <div class={classes.content}>
+        <div class={classes.fileTreeSection}>
+          <div class={classes.fileTree}>
+            <FileTree fsNode={finderStore.ls.value} />
           </div>
-          <div style='overflow: auto'>
-            {Array.from(finderStore.files.value.entries()).map(
-              ([path, asyncSignal]) => (
-                <section
-                  key={path}
-                  id={encodeStringForUrl(path)}
-                  class={classes.fileViewerSection}
-                >
-                  <h2>{path}</h2>
-                  <div class={classes.fileContent}>
-                    {asyncSignal.state.value}
-                  </div>
-                </section>
-              ),
-            )}
-          </div>
+          <CreateFileOrDirectory />
         </div>
-        <footer class={classes.footer}>Alex Jeffcott</footer>
-      </main>
-    </>
+        <div style='overflow: auto'>
+          {Array.from(finderStore.files.value.entries()).map(
+            ([path, asyncSignal]) => (
+              <section
+                key={path}
+                id={encodeStringForUrl(path)}
+                class={classes.fileViewerSection}
+                style='background-color:#2e3440ff;color:#d8dee9ff;'
+              >
+                <h2>{path}</h2>
+                <div
+                  class={classes.fileContent}
+                  dangerouslySetInnerHTML={{
+                    __html: asyncSignal.state.value || '',
+                  }}
+                >
+                </div>
+              </section>
+            ),
+          )}
+        </div>
+      </div>
+      <footer class={classes.footer}>Alex Jeffcott</footer>
+    </main>
   )
 }
 
 const FileTree = ({ fsNode }: { fsNode: FSNode }) => {
   const { finderStore, routerStore } = useStores()
   const hash = `#${encodeStringForUrl(fsNode.path)}`
+  onMount(() => {
+    finderStore.files.value.get(fsNode.path)?.fetch()
+  })
   return (
     <>
       {fsNode.path &&
@@ -69,7 +75,6 @@ const FileTree = ({ fsNode }: { fsNode: FSNode }) => {
           >
             <a
               href={hash}
-              onClick={() => finderStore.files.value.get(fsNode.path)?.fetch()}
               style={`--nesting: ${fsNode.path.split('/').length - 1};`}
             >
               {fsNode.name}

@@ -9,10 +9,11 @@ import { fsHandlers } from '@/broadcast/main.ts'
 import { type FSNode } from '@/types/fs.ts'
 import { type AsyncSignal, asyncSignal } from '@/utils/async-signal.ts'
 
+const v = '@3.1.0'
+const { codeToHtml } = await import(`https://esm.run/shiki${v}`)
+
 export class FinderStore extends BaseStore {
   ls: Signal<FSNode>
-  currentFileNode: Signal<FSNode | undefined>
-  currentFileContent: Signal<string | undefined>
   files: ReadonlySignal<Map<string, AsyncSignal<string>>>
 
   constructor() {
@@ -23,19 +24,22 @@ export class FinderStore extends BaseStore {
       path: '',
     })
 
-    this.currentFileNode = signal<FSNode | undefined>()
-    this.currentFileContent = signal<string | undefined>()
-
     this.files = computed(() => {
       const map = new Map<string, AsyncSignal<string>>()
       // it would be cool to sort through and only change the changes
       // in an effect without swapping out the entire map
-
       function addToMap(fsNode: FSNode) {
         if (fsNode.kind === 'file') {
           const sig = asyncSignal<string>()
           sig.init(() => [
-            () => fsHandlers.read(fsNode.path),
+            async () => {
+              const txt = await fsHandlers.read(fsNode.path)
+              const htmlStr = await codeToHtml(txt, {
+                lang: 'typescript',
+                theme: 'nord',
+              })
+              return htmlStr
+            },
             () => {},
           ])
           map.set(fsNode.path, sig)
@@ -56,7 +60,6 @@ export class FinderStore extends BaseStore {
     this.copy = this.copy.bind(this)
     this.move = this.move.bind(this)
     this.delete = this.delete.bind(this)
-    this.readFile = this.readFile.bind(this)
     this.exists = this.exists.bind(this)
 
     this.refreshLs()
@@ -66,21 +69,6 @@ export class FinderStore extends BaseStore {
   refreshLs() {
     fsHandlers.list().then((res) => {
       this.ls.value = res
-    })
-  }
-
-  readFile(fsNode: FSNode): void {
-    fsHandlers.existsFile(fsNode.path).then((exists) => {
-      if (exists) {
-        fsHandlers.read(fsNode.path).then((res) => {
-          this.currentFileContent.value = res
-          this.currentFileNode.value = fsNode
-        })
-      } else {
-        console.error('file does not exist at path: ' + fsNode.path)
-        this.currentFileNode.value = undefined
-        this.currentFileContent.value = undefined
-      }
     })
   }
 
@@ -96,11 +84,18 @@ export class FinderStore extends BaseStore {
     this.exists(fsNode).then((exists) => {
       if (!exists) {
         if (fsNode.kind === 'file') {
-          const data = 'this is some text content.'
+          const data =
+            `const defaultArr = new Array(999999).fill(undefined).map(i => i)
+
+function run(arr: number[] = defaultArr): number {
+    let sum = 0
+    for (let i = 0; i < arr.length; i++) {
+            sum += arr[i]
+    }
+    return sum;
+}`
           fsHandlers.write(fsNode.path, data).then(
             () => {
-              this.currentFileNode.value = fsNode
-              this.currentFileContent.value = data
               this.refreshLs()
             },
           )
@@ -122,17 +117,6 @@ export class FinderStore extends BaseStore {
     this.exists(fsNode).then((exists) => {
       if (exists) {
         fsHandlers.delete(fsNode.path).then(() => {
-          if (fsNode.kind === 'file') {
-            if (fsNode.path === this.currentFileNode.peek()?.path) {
-              this.currentFileNode.value = undefined
-              this.currentFileContent.value = undefined
-            }
-          } else {
-            if (this.currentFileNode.peek()?.path.startsWith(fsNode.path)) {
-              this.currentFileNode.value = undefined
-              this.currentFileContent.value = undefined
-            }
-          }
           setTimeout(() => this.refreshLs(), 100)
         })
       } else {

@@ -1,4 +1,4 @@
-# Alex Jeffcott - The SPA!
+Alex Jeffcott - The SPA!
 
 ## Many things to do!
 
