@@ -1,0 +1,130 @@
+.page {
+  height: 100vh;
+  width: 100vw;
+  display: grid;
+  grid-template-rows: min-content 1fr min-content;
+  grid-template-columns: 1fr;
+  padding: 1rem;
+  row-gap: 16px;
+}
+
+.header {
+  display: grid;
+  grid-template-rows: 100%;
+  grid-template-columns: 1fr min-content min-content;
+  align-items: center;
+  justify-content: end;
+  gap: 8px;
+}
+
+.content {
+  display: grid;
+  grid-template-columns: 275px auto;
+  grid-template-rows: auto;
+  column-gap: 16px;
+}
+
+.fileTreeSection {
+  display: grid;
+  grid-template-rows: auto min-content;
+
+}
+
+.fileContent {
+}
+
+.fileViewerSection {
+  padding: 16px;
+  border: 1px solid var(--txt-primary);
+  height: 100%;
+}
+
+.fileTree {
+    display: grid;
+    grid-auto-rows: min-content;
+    align-items: start;
+    justify-items: start;
+  row-gap: 8px;
+}
+
+.fsItem {
+  --height: 24px;
+  --space: 8px;
+  display: grid;
+    grid-auto-flow: column;
+    align-items: center;
+    grid-template-columns: auto 32px;
+  column-gap: var(--space);
+  grid-template-rows: var(--height);
+    width: 100%;
+    height: 100%;
+}
+
+.fsItem.current {
+border: 1px solid var(--txt-primary);
+  border-radius: 20px;
+}
+
+.fsItem > a {
+  text-decoration: none;
+  margin-left: calc(.5rem + var(--nesting, 0) * calc(var(--space) * 2));
+  height: var(--height);
+    line-height: var(--height);
+}
+
+.fsItem > button {
+    height: var(--height);
+    line-height: var(--height);
+    border-radius: calc(var(--height) / 2);
+      cursor: pointer;
+      border: 2px solid var(--txt-primary);
+    background-color: var(--surface-primary);
+    color: var(--txt-primary);
+  display: flex;
+    align-items: center;
+  transition: background-color .2s, border-color .2s, opacity .2s;
+  position: relative;
+}
+
+:popover-open {
+  border-radius: calc(var(--height) / 2);
+      border: 2px solid var(--txt-primary);
+    background-color: var(--surface-primary);
+    color: var(--txt-primary);
+  margin: 4px;
+      padding: 8px;
+    display: grid;
+    justify-items: center;
+    row-gap: 8px;
+  position-area: right;
+    position-try-fallbacks: left;
+  overflow: visible;
+    align-self: anchor-center;
+}
+
+.fsItem > button:has(+ div:popover-open)::before {
+content: '';
+position: absolute;
+  inset: 6px 0px 0px 26px;
+  width: 8px;
+  height: 8px;
+background-color: var(--txt-primary);
+  border-radius: 100%;
+  z-index: -1;
+}
+
+
+::backdrop {
+  backdrop-filter: blur(1px);
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+}
+
+.footer {
+  text-align: end;
+}

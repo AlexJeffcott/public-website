@@ -1,27 +1,61 @@
-import { type Signal, signal } from '@preact/signals'
+import {
+  computed,
+  type ReadonlySignal,
+  type Signal,
+  signal,
+} from '@preact/signals'
 import { BaseStore } from '@/stores/base.ts'
 
 export class RouterStore extends BaseStore {
-  currentPath: Signal<string>
+  location: Signal<{
+    path: string
+    hash: string
+    search: typeof globalThis.location.search
+  }>
+  path: ReadonlySignal<string>
+  hash: ReadonlySignal<string>
+  search: ReadonlySignal<typeof globalThis.location.search>
 
-  // NOTE: I should probably pass in globalThis or possibly globalThis.location and globalThis.history
   constructor() {
     super('routerStore')
-    this.currentPath = signal(globalThis.location.pathname)
+    const location = globalThis.location
+    this.location = signal({
+      path: location.pathname,
+      hash: location.hash,
+      search: location.search,
+    })
 
-    // Listen for popstate events (browser back/forward)
-    globalThis.addEventListener('popstate', () => {
-      this.currentPath.value = globalThis.location.pathname
+    this.path = computed(() => this.location.value.path)
+    this.hash = computed(() => this.location.value.hash)
+    this.search = computed(() => this.location.value.search)
+
+    globalThis.addEventListener('popstate', (_e) => {
+      this.setLocation()
+    })
+
+    globalThis.addEventListener('hashchange', (_e) => {
+      this.setLocation()
     })
 
     this.logger.info('RouterStore initialized', {
-      initialPath: this.currentPath.value,
+      initialPath: this.path.value,
     })
+
+    this.setLocation = this.setLocation.bind(this)
+    this.navigate = this.navigate.bind(this)
+  }
+
+  setLocation() {
+    this.location.value = {
+      path: globalThis.location.pathname,
+      hash: globalThis.location.hash,
+      search: globalThis.location.search,
+    }
   }
 
   navigate(path: string) {
     this.logger.debug('Navigating to', { path })
     globalThis.history.pushState(null, '', path)
-    this.currentPath.value = path
+    this.setLocation()
   }
 }

@@ -12,7 +12,7 @@ if (element instanceof HTMLElement) {
   initActionListeners(element, stores)
 
   const Router = () => {
-    const path = stores.routerStore.currentPath.value
+    const path = stores.routerStore.path.value
     switch (path) {
       case '/code':
         return <CodePage />

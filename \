@@ -1,0 +1,88 @@
+import { isObject } from '@/types/is-object.ts'
+
+export function isSharedWorkerGlobalScope(
+    value: unknown,
+): value is SharedWorkerGlobalScope {
+    return typeof value === 'object' &&
+        value !== null &&
+        'onconnect' in value
+}
+
+type ReadPayload = {
+    operation: 'read'
+    path: string
+}
+
+type WritePayload = {
+    operation: 'write'
+    path: string
+    data: ArrayBuffer | string
+}
+
+type DeletePayload = {
+    operation: 'delete'
+    path: string
+}
+
+type ExistsPayload = {
+    operation: 'exists'
+    path: string
+}
+
+type ListPayload = {
+    operation: 'list'
+    directory: string
+}
+
+type MovePayload = {
+    operation: 'move'
+    oldPath: string
+    newPath: string
+}
+
+type CopyPayload = {
+    operation: 'copy'
+    sourcePath: string
+    destinationPath: string
+}
+
+type PingPayload = {
+    operation: 'ping'
+}
+
+export type Payload =
+    | ReadPayload
+    | WritePayload
+    | DeletePayload
+    | ExistsPayload
+    | ListPayload
+    | MovePayload
+    | CopyPayload
+    | PingPayload
+
+export const isRead = (p: unknown | ReadPayload): p is ReadPayload =>
+    isObject(p) && p.operation === 'read' && typeof p.path === 'string'
+
+export const isWrite = (p: unknown | WritePayload): p is WritePayload =>
+    isObject(p) && p.operation === 'write' && typeof p.path === 'string' &&
+    (typeof p.data === 'string' || p.data instanceof ArrayBuffer)
+
+export const isDelete = (p: unknown | DeletePayload): p is DeletePayload =>
+    isObject(p) && p.operation === 'delete' && typeof p.path === 'string'
+
+export const isExists = (p: unknown | ExistsPayload): p is ExistsPayload =>
+    isObject(p) && p.operation === 'exists' && typeof p.path === 'string'
+
+export const isList = (p: unknown | ListPayload): p is ListPayload =>
+    isObject(p) && p.operation === 'list' && typeof p.directory === 'string'
+
+export const isMove = (p: unknown | MovePayload): p is MovePayload =>
+    isObject(p) && p.operation === 'move' && typeof p.oldPath === 'string' &&
+    typeof p.newPath === 'string'
+
+export const isCopy = (p: unknown | CopyPayload): p is CopyPayload =>
+    isObject(p) && p.operation === 'copy' && typeof p.sourcePath === 'string' &&
+    typeof p.destinationPath === 'string'
+
+export const isPing = (p: unknown | PingPayload): p is PingPayload =>
+    isObject(p) && p.operation === 'ping'
