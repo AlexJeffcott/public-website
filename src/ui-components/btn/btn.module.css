@@ -1,6 +1,6 @@
 .btn {
-  --height: 40px;
-  --space: 8px;
+  --height: 32px;
+  --space: 4px;
   height: var(--height);
   line-height: var(--height);
   border-radius: calc(var(--height) / 2);
