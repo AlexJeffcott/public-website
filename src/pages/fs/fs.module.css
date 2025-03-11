@@ -46,46 +46,62 @@
 }
 
 .fsItem {
-  --height: 24px;
-  --space: 8px;
+  --fs-item-height: 24px;
+  --fs-item-space: 8px;
   display: grid;
   grid-auto-flow: column;
   align-items: center;
   grid-template-columns: auto 32px;
-  column-gap: var(--space);
-  grid-template-rows: var(--height);
+  column-gap: var(--fs-item-space);
+  grid-template-rows: var(--fs-item-height);
   width: 100%;
   height: 100%;
-}
-
-.fsItem.current {
-  border: 1px solid var(--txt-primary);
-  border-radius: 20px;
-}
-
-.fsItem > a {
-  text-decoration: none;
-  margin-left: calc(0.5rem + var(--nesting, 0) * calc(var(--space) * 2));
-  height: var(--height);
-  line-height: var(--height);
-}
-
-.fsItem > button {
-  height: var(--height);
-  line-height: var(--height);
-  border-radius: calc(var(--height) / 2);
-  cursor: pointer;
-  border: 2px solid var(--txt-primary);
-  background-color: var(--surface-primary);
-  color: var(--txt-primary);
-  display: flex;
-  align-items: center;
-  transition: background-color 0.2s, border-color 0.2s, opacity 0.2s;
   position: relative;
 }
 
+.link {
+  margin-left: var(--fs-item-space);
+  height: var(--fs-item-height);
+  line-height: var(--fs-item-height);
+  outline-offset: 2px;
+  outline-width: 2px;
+text-decoration: none;
+  border-radius: calc(var(--fs-item-height) / 6);
+}
+
+.link:hover,
+.link:active,
+.link:focus-visible,
+.link:focus {
+  border-color: var(--txt-secondary);
+  outline-color: var(--txt-secondary);
+  outline-style: solid;
+  color: var(--txt-secondary);
+  fill: var(--txt-secondary);
+  background-color: var(--surface-secondary);
+}
+
+.spacer {
+  opacity: .6;
+  padding-right: .3ch;
+}
+
+.current::before {
+  content: '•';
+  position: absolute;
+top: -2px;
+    left: -4px;
+    font-size: 26px;
+}
+
+.btn {
+  height: var(--fs-item-height);
+  line-height: var(--fs-item-height);
+  border-radius: calc(var(--fs-item-height) / 4);
+}
+
 :popover-open {
-  border-radius: calc(var(--height) / 2);
+  border-radius: calc(var(--fs-item-height) / 2);
   border: 2px solid var(--txt-primary);
   background-color: var(--surface-primary);
   color: var(--txt-primary);
@@ -100,19 +116,11 @@
   align-self: anchor-center;
 }
 
-.fsItem > button:has(+ div:popover-open)::before {
-  content: '';
+.btn:has(+ div:popover-open)::after {
+  content: '•';
   position: absolute;
-  inset: 6px 0px 0px 26px;
-  width: 8px;
-  height: 8px;
-  background-color: var(--txt-primary);
-  border-radius: 100%;
-  z-index: -1;
-}
-
-::backdrop {
-  backdrop-filter: blur(1px);
+  left: -12px;
+  font-size: 26px;
 }
 
 .nav {

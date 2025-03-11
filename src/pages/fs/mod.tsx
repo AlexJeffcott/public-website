@@ -13,6 +13,7 @@ import { cls, encodeStringForUrl } from '@/utils/mod.ts'
 import { onMount } from '@/hooks/mod.ts'
 import { useStores } from '@/contexts/stores.tsx'
 import { type FSNode } from '@/types/fs.ts'
+import { Btn } from '@/ui-components/mod.ts'
 
 export const FSPage: FunctionalComponent = () => {
   const { finderStore } = useStores()
@@ -63,6 +64,8 @@ const FileTree = ({ fsNode }: { fsNode: FSNode }) => {
   onMount(() => {
     finderStore.files.value.get(fsNode.path)?.fetch()
   })
+
+  const nesting = Math.max(fsNode.path.split('/').length - 1, 0)
   return (
     <>
       {fsNode.path &&
@@ -73,13 +76,15 @@ const FileTree = ({ fsNode }: { fsNode: FSNode }) => {
               routerStore.hash.value === hash && classes.current,
             )}
           >
-            <a
-              href={hash}
-              style={`--nesting: ${fsNode.path.split('/').length - 1};`}
-            >
+            <a class={classes.link} href={hash}>
+              {!!nesting && (
+                <span class={classes.spacer}>
+                  {'––'.repeat(nesting)}
+                </span>
+              )}
               {fsNode.name}
             </a>
-            <button popovertarget={fsNode.path}>…</button>
+            <Btn class={classes.btn} popovertarget={fsNode.path}>…</Btn>
             <div
               id={fsNode.path}
               popover='auto'

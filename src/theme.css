@@ -40,8 +40,8 @@
   );
 
   --txt-secondary: light-dark(
-    lch(from var(--base-color) calc(l - 60) calc(c - 40) calc(h + 120)),
-    lch(from var(--base-color) calc(l + 60) calc(c - 40) calc(h + 120))
+    lch(from var(--txt-primary) calc(l + 15) c h),
+    lch(from var(--txt-primary) calc(l - 15) c h)
   );
 
   --surface-primary: light-dark(
@@ -60,4 +60,8 @@
     lch(from var(--base-color) calc(l + 10) calc(c - 40) h),
     lch(from var(--base-color) calc(l - 40) calc(c - 40) h)
   );
+}
+
+::backdrop {
+  backdrop-filter: blur(1px);
 }

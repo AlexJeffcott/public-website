@@ -10,6 +10,10 @@ const app = new Hono()
 
 // TODO: should I cache the esbuild wasm so I can reuse it between server runs?
 
+
+// it would be cool to also have entryNames with a hash but I would need to fingured
+// out how to ensure that the worker import has the right path.
+
 async function makeBundle(): Promise<
   [() => Promise<void>, () => Promise<void>, () => Promise<esbuild.BuildResult>]
 > {
@@ -17,6 +21,9 @@ async function makeBundle(): Promise<
     {
       entryPoints: ['./src/main.tsx', './src/workers/fs-worker.ts'],
       write: false,
+      assetNames: '[name]-[hash]',
+      chunkNames: '[name]-[hash]',
+      minify: false
     },
     'deno.json',
     'dev',
@@ -70,7 +77,7 @@ for (const out of result.outputFiles) {
   if (ext === '.css') {
     styles = `${styles}\n<link rel="stylesheet" type="text/css" href="${path}">`
   } else if (ext === '.js' || ext === '.mjs') {
-    if (!fileName.includes('worker.js')) {
+    if (!fileName.includes('worker')) {
       scripts = `${scripts}\n<script type="module" src="${path}"></script>`
     }
   }
