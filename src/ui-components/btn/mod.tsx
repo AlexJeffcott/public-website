@@ -2,7 +2,7 @@ import { type FunctionalComponent, type RefObject } from 'preact'
 import { cls } from '@/utils/mod.ts'
 import classes from '@/ui-components/btn/btn.module.css'
 
-function createPressHandlers(onPress: () => void, onLongPress?: () => void) {
+function createPressHandlers(onPress?: () => void, onLongPress?: () => void) {
   return {
     onClick: (event: Event) => handleClickEvent(event as MouseEvent, onPress),
     onTouchStart: (event: Event) =>
@@ -16,60 +16,66 @@ function createPressHandlers(onPress: () => void, onLongPress?: () => void) {
   }
 }
 
-function handleClickEvent(event: MouseEvent, onPress: () => void) {
-  onPress()
+function handleClickEvent(event: MouseEvent, onPress?: () => void) {
+  if (typeof onPress === 'function') {
+    onPress()
+  }
 }
 
-function handlekeyboardEvent(event: KeyboardEvent, onPress: () => void) {
-  if (event.key === 'Enter') {
-    onPress()
+function handlekeyboardEvent(event: KeyboardEvent, onPress?: () => void) {
+  if (typeof onPress === 'function') {
+    if (event.key === 'Enter') {
+      onPress()
+    }
   }
 }
 
 function handleTouchEvent(
   event: TouchEvent,
-  onPress: () => void,
+  onPress?: () => void,
   onLongPress?: () => void,
   longPressThreshold: number = 500,
 ) {
-  const { target } = event
+  if (typeof onPress === 'function') {
+    const { target } = event
 
-  if (!target) {
-    return
-  }
-
-  let timeout: ReturnType<typeof setTimeout>
-
-  const touchEndHandler = (event: Event) => {
-    clearTimeout(timeout)
-    if (
-      event.type === 'touchend' &&
-      'changedTouches' in event &&
-      Array.isArray(event.changedTouches) &&
-      event.changedTouches.length > 0
-    ) {
-      onPress()
+    if (!target) {
+      return
     }
-    target.removeEventListener('touchend', touchEndHandler)
-  }
 
-  timeout = setTimeout(() => {
-    if (!onLongPress) {
-      onPress()
-    } else {
-      onLongPress()
+    let timeout: ReturnType<typeof setTimeout>
+
+    const touchEndHandler = (event: Event) => {
+      clearTimeout(timeout)
+      if (
+        event.type === 'touchend' &&
+        'changedTouches' in event &&
+        Array.isArray(event.changedTouches) &&
+        event.changedTouches.length > 0
+      ) {
+        onPress()
+      }
+      target.removeEventListener('touchend', touchEndHandler)
     }
-    target.removeEventListener('touchend', touchEndHandler)
-  }, longPressThreshold)
 
-  target.addEventListener('touchend', touchEndHandler)
+    timeout = setTimeout(() => {
+      if (!onLongPress) {
+        onPress()
+      } else {
+        onLongPress()
+      }
+      target.removeEventListener('touchend', touchEndHandler)
+    }, longPressThreshold)
+
+    target.addEventListener('touchend', touchEndHandler)
+  }
 }
 
 type BtnProps = {
   ariaLabel?: string
   class?: string
   forwardRef?: RefObject<HTMLButtonElement>
-  onPress: () => void
+  onPress?: () => void
   onLongPress?: () => void
   title?: string
   children: preact.ComponentChildren

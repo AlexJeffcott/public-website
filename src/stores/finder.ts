@@ -38,7 +38,7 @@ export class FinderStore extends BaseStore {
                 lang: 'typescript',
                 theme: 'nord',
               })
-              return htmlStr
+              return `<h2>${fsNode.name}</h2>${htmlStr}`
             },
             () => {},
           ])

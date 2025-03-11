@@ -2,7 +2,7 @@
   height: 100vh;
   width: 100vw;
   display: grid;
-  grid-template-rows: min-content 1fr min-content;
+  grid-template-rows: min-content auto;
   grid-template-columns: 1fr;
   padding: 1rem;
   row-gap: 16px;
@@ -65,7 +65,7 @@
   line-height: var(--fs-item-height);
   outline-offset: 2px;
   outline-width: 2px;
-text-decoration: none;
+  text-decoration: none;
   border-radius: calc(var(--fs-item-height) / 6);
 }
 
@@ -79,6 +79,12 @@ text-decoration: none;
   color: var(--txt-secondary);
   fill: var(--txt-secondary);
   background-color: var(--surface-secondary);
+}
+
+.dlink {
+  margin-left: var(--fs-item-space);
+  height: var(--fs-item-height);
+  line-height: var(--fs-item-height);
 }
 
 .spacer {
@@ -130,6 +136,3 @@ top: -2px;
   align-items: center;
 }
 
-.footer {
-  text-align: end;
-}
