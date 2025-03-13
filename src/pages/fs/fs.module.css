@@ -29,14 +29,6 @@
   grid-template-rows: auto min-content;
 }
 
-.fileContent {}
-
-.fileViewerSection {
-  padding: 16px;
-  border: 1px solid var(--txt-primary);
-  height: 100%;
-}
-
 .fileTree {
   display: grid;
   grid-auto-rows: min-content;
@@ -88,16 +80,16 @@
 }
 
 .spacer {
-  opacity: .6;
-  padding-right: .3ch;
+  opacity: 0.6;
+  padding-right: 0.3ch;
 }
 
 .current::before {
   content: '•';
   position: absolute;
-top: -2px;
-    left: -4px;
-    font-size: 26px;
+  top: -2px;
+  left: -4px;
+  font-size: 26px;
 }
 
 .btn {
@@ -136,3 +128,57 @@ top: -2px;
   align-items: center;
 }
 
+.fileViewerSection {
+  border: 1px solid var(--txt-primary);
+  border-radius: 4px;
+  height: 100%;
+  position: relative;
+  background-color: light-dark(#ffffff, #1f1f1f);
+  &:hover,
+  &:active,
+  &:focus-visible,
+  &:focus {
+    border-color: var(--txt-secondary);
+    outline-color: var(--txt-secondary);
+    outline-style: solid;
+    fill: var(--txt-secondary);
+  }
+}
+
+.fileContentTextArea {
+  color: transparent;
+  tab-size: 4;
+  caret-color: light-dark(black, white);
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    Liberation Mono,
+    Courier New,
+    monospace;
+  padding: 16px;
+  background-color: transparent;
+  white-space: pre;
+  overflow: auto;
+  resize: none;
+  inset: 0;
+  position: absolute;
+  z-index: 10;
+  touch-action: manipulation;
+  border: none;
+  width: 100%;
+  height: 100%;
+  outline: none;
+}
+
+.fileContentMarkup {
+  padding: 0px;
+  white-space: pre;
+  overflow: auto;
+  inset: 0 16px;
+  position: absolute;
+  border: none;
+  outline: none;
+}

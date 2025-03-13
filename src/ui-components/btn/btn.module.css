@@ -28,17 +28,15 @@
   box-sizing: border-box;
   position: relative;
   outline-width: 2px;
+  &:hover,
+  &:active,
+  &:focus-visible,
+  &:focus {
+    border-color: var(--txt-secondary);
+    outline-color: var(--txt-secondary);
+    outline-style: solid;
+    color: var(--txt-secondary);
+    fill: var(--txt-secondary);
+    background-color: var(--surface-secondary);
+  }
 }
-
-.btn:hover,
-.btn:active,
-.btn:focus-visible,
-.btn:focus {
-  border-color: var(--txt-secondary);
-  outline-color: var(--txt-secondary);
-  outline-style: solid;
-  color: var(--txt-secondary);
-  fill: var(--txt-secondary);
-  background-color: var(--surface-secondary);
-}
-

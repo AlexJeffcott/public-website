@@ -2,7 +2,10 @@ import { type Signal, signal } from '@preact/signals'
 
 type Status = 'initial' | 'loading' | 'errored' | 'fetched' | 'cancelled'
 
-export type CreateHandlers<T> = () => [() => Promise<T>, () => void]
+export type CreateHandlers<T> = () => [
+  (args?: unknown) => Promise<T>,
+  () => void,
+]
 
 type Logs<T> = Array<T | string>
 
@@ -12,14 +15,14 @@ export type AsyncSignal<T> = {
   error: Signal<string | undefined>
   count: Signal<number>
   cancel: () => void
-  fetch: () => void
+  fetch: (args?: unknown) => void
   reset: () => void
   init: (createHandlers: CreateHandlers<T>) => void
   getLogs: () => Logs<T>
 }
 
 export function asyncSignal<T>() {
-  let cb: (() => Promise<T>) | undefined = undefined
+  let cb: ((args?: unknown) => Promise<T>) | undefined = undefined
   let cancellationHandler: (() => void) | undefined = undefined
   let logs: Array<T | string> = []
 
@@ -42,7 +45,7 @@ export function asyncSignal<T>() {
     logs.push('Operation cancelled')
   }
 
-  const fetch = (): void => {
+  const fetch = (args?: unknown): void => {
     count.value++
     if (status.peek() !== 'loading') {
       if (cb === undefined) {
@@ -54,7 +57,7 @@ export function asyncSignal<T>() {
 
       status.value = 'loading'
 
-      cb()
+      cb(args)
         .then((res) => {
           status.value = 'fetched'
           state.value = res

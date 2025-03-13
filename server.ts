@@ -10,7 +10,6 @@ const app = new Hono()
 
 // TODO: should I cache the esbuild wasm so I can reuse it between server runs?
 
-
 // it would be cool to also have entryNames with a hash but I would need to fingured
 // out how to ensure that the worker import has the right path.
 
@@ -23,7 +22,7 @@ async function makeBundle(): Promise<
       write: false,
       assetNames: '[name]-[hash]',
       chunkNames: '[name]-[hash]',
-      minify: false
+      minify: false,
     },
     'deno.json',
     'dev',

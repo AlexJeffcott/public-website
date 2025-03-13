@@ -10,24 +10,22 @@ import {
   ToggleThemeBtn,
 } from '@/actions-ui/mod.ts'
 import { cls, encodeStringForUrl } from '@/utils/mod.ts'
-import { onMount } from '@/hooks/mod.ts'
+import { useSignalEffect } from '@/hooks/mod.ts'
 import { useStores } from '@/contexts/stores.tsx'
 import { type FSNode } from '@/types/fs.ts'
 import { Btn } from '@/ui-components/mod.ts'
 
 export const FSPage: FunctionalComponent = () => {
-  const { finderStore, routerStore } = useStores()
+  const { finderStore, routerStore, editorStore } = useStores()
 
-  onMount(() => {
-    // should I link the hash from the routerstore to a file content store?
-    const hash = decodeURIComponent(routerStore.hash.value).slice(1)
-    if (finderStore.files.value.has(hash)) {
-      const f = finderStore.files.value.get(hash)
-      if (f) {
-        f.fetch()
-      }
-    }
+  useSignalEffect(() => {
+    // NOTE: when the hash changes, update the filePath
+    editorStore.setFilePath(decodeURIComponent(routerStore.hash.value).slice(1))
   })
+  // <div dangerouslySetInnerHTML={{ __html: editorStore.markup.value }}></div>
+  //<code class={classes.fileContent}>
+  //  {editorStore.text}
+  //</code>
 
   return (
     <main class={classes.page}>
@@ -46,18 +44,24 @@ export const FSPage: FunctionalComponent = () => {
         <div>
           <section
             class={classes.fileViewerSection}
-            style='background-color:#2e3440ff;color:#d8dee9ff;'
           >
-            <div
-              class={classes.fileContent}
-              dangerouslySetInnerHTML={{
-                __html: finderStore.files.value?.get(
-                  decodeURIComponent(routerStore.hash.value).slice(1),
-                )?.state.value ||
-                  '',
-              }}
+            <span
+              class={classes.fileContentMarkup}
+              dangerouslySetInnerHTML={{ __html: editorStore.markup.value }}
             >
-            </div>
+            </span>
+            <textarea
+              class={classes.fileContentTextArea}
+              autocomplete='off'
+              autocorrect='off'
+              autocapitalize='off'
+              spellcheck={false}
+              onInput={(e) => {
+                editorStore.update(e.currentTarget.value)
+              }}
+              value={editorStore.text.value}
+            >
+            </textarea>
           </section>
         </div>
       </div>
@@ -103,7 +107,6 @@ const FileTree = ({ fsNode }: { fsNode: FSNode }) => {
 const FileLink: FunctionalComponent<{ fsNode: FSNode }> = (
   { fsNode },
 ) => {
-  const { finderStore } = useStores()
   const hash = `#${encodeStringForUrl(fsNode.path)}`
   const nesting = Math.max(fsNode.path.split('/').length - 1, 0)
 
@@ -111,7 +114,6 @@ const FileLink: FunctionalComponent<{ fsNode: FSNode }> = (
     <a
       class={classes.link}
       href={hash}
-      onClick={() => finderStore.files.value.get(fsNode.path)?.fetch()}
     >
       {!!nesting && (
         <span class={classes.spacer}>

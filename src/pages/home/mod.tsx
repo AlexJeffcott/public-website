@@ -1,7 +1,6 @@
 import { type FunctionalComponent } from 'preact'
 import classes from '@/pages/home/home.module.css'
 import {
-  NavigateToCodeBtn,
   NavigateToFSBtn,
   NavigateToGenImgBtn,
   ToggleColorThemeBtn,
@@ -19,7 +18,6 @@ export const HomePage: FunctionalComponent = () => {
       <div class={classes.content}>
         <h1>Welcome</h1>
         <nav class={classes.nav}>
-          <NavigateToCodeBtn />
           <NavigateToGenImgBtn />
           <NavigateToFSBtn />
         </nav>

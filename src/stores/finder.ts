@@ -1,20 +1,11 @@
-import {
-  computed,
-  type ReadonlySignal,
-  type Signal,
-  signal,
-} from '@preact/signals'
+import { type Signal, signal } from '@preact/signals'
 import { BaseStore } from '@/stores/base.ts'
 import { fsHandlers } from '@/broadcast/main.ts'
 import { type FSNode } from '@/types/fs.ts'
-import { type AsyncSignal, asyncSignal } from '@/utils/async-signal.ts'
-
-const v = '@3.1.0'
-const { codeToHtml } = await import(`https://esm.run/shiki${v}`)
+//import { type AsyncSignal, asyncSignal } from '@/utils/async-signal.ts'
 
 export class FinderStore extends BaseStore {
   ls: Signal<FSNode>
-  files: ReadonlySignal<Map<string, AsyncSignal<string>>>
 
   constructor() {
     super('finderStore')
@@ -22,36 +13,6 @@ export class FinderStore extends BaseStore {
       name: 'root',
       kind: 'directory',
       path: '',
-    })
-
-    this.files = computed(() => {
-      const map = new Map<string, AsyncSignal<string>>()
-      // it would be cool to sort through and only change the changes
-      // in an effect without swapping out the entire map
-      function addToMap(fsNode: FSNode) {
-        if (fsNode.kind === 'file') {
-          const sig = asyncSignal<string>()
-          sig.init(() => [
-            async () => {
-              const txt = await fsHandlers.read(fsNode.path)
-              const htmlStr = await codeToHtml(txt, {
-                lang: 'typescript',
-                theme: 'nord',
-              })
-              return `<h2>${fsNode.name}</h2>${htmlStr}`
-            },
-            () => {},
-          ])
-          map.set(fsNode.path, sig)
-        } else if (fsNode.children?.length) {
-          for (const child of fsNode.children) {
-            addToMap(child)
-          }
-        }
-      }
-
-      addToMap(this.ls.value)
-      return map
     })
 
     this.refreshLs = this.refreshLs.bind(this)
