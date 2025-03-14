@@ -30,26 +30,29 @@ export class ActionEvent extends Event {
 
 type CreateCBArgs = Partial<{
   finderStore: Stores['finderStore']
+  routerStore: Stores['routerStore']
 }>
 
 export function createCB({
   finderStore,
+  routerStore,
 }: CreateCBArgs): (e: ActionEvent) => void {
   return (e: ActionEvent): void => {
     const details = e.details
-    if (!finderStore || !details) {
+    if (!routerStore || !finderStore || !details) {
       handleError(
-        'the deletefileordirectory action needs a finderStore and details.',
+        'the deletefileordirectory action needs a routerStore and finderStore and details.',
       )
       return
     }
-    action({ cb: details.cb, finderStore, fsNode: details.fsNode })
+    action({ cb: details.cb, finderStore, routerStore, fsNode: details.fsNode })
   }
 }
 
 function action(
-  { cb, finderStore, fsNode }: {
+  { cb, finderStore, fsNode, routerStore }: {
     finderStore: Stores['finderStore']
+    routerStore: Stores['routerStore']
     fsNode: Details['fsNode']
     cb: Details['cb']
   },
@@ -58,6 +61,7 @@ function action(
     finderStore.exists(fsNode).then((exists) => {
       if (exists) {
         finderStore.delete(fsNode)
+        routerStore.navigate('/fs')
         if (typeof cb === 'function') {
           cb()
         }

@@ -20,6 +20,51 @@ if (createMarkup === undefined) {
   createMarkup = res.codeToHtml
 }
 
+function getLangByFilePath(path?: string) {
+  const ext = path?.split('.').pop() || ''
+  switch (ext) {
+    case 'ts': {
+      return 'typescript'
+    }
+    case 'js': {
+      return 'javascript'
+    }
+    case 'md': {
+      return 'markdown'
+    }
+    case 'html': {
+      return 'html'
+    }
+    case 'css': {
+      return 'css'
+    }
+    case 'txt': {
+      return 'typescript'
+    }
+    case 'json': {
+      return 'json'
+    }
+    case 'jsx': {
+      return 'jsx'
+    }
+    case 'tsx': {
+      return 'tsx'
+    }
+    case 'sh': {
+      return 'shellscript'
+    }
+    case 'sql': {
+      return 'sql'
+    }
+    case 'regexp': {
+      return 'regexp'
+    }
+    default: {
+      return 'text'
+    }
+  }
+}
+
 export class EditorStore extends BaseStore {
   currentFilePath: Signal<string>
   text: ReadonlySignal<string>
@@ -29,12 +74,9 @@ export class EditorStore extends BaseStore {
 
   constructor() {
     super('editorStore')
-
     this.currentFilePath = signal<string>('')
     this.markup = signal<string>('')
-
     this.current = asyncSignal<string | undefined>()
-
     this.disposes = new Set()
 
     this.current.init(() => [
@@ -47,8 +89,6 @@ export class EditorStore extends BaseStore {
       },
       () => {},
     ])
-
-    this.logger.info('editorStore initialised')
 
     this.disposes.add(effect(() => {
       const path = this.currentFilePath.value
@@ -68,16 +108,19 @@ export class EditorStore extends BaseStore {
     })
 
     this.disposes.add(effect(() => {
-      const text = this.text.value || ''
+      const text = this.text.value
       if (text && createMarkup) {
+        this.markup.value = ''
         createMarkup(text, {
-          lang: 'typescript',
+          lang: getLangByFilePath(this.currentFilePath.value),
           themes: { dark: 'min-dark', light: 'min-light' },
         }).then((htmlStr: string) => {
           this.markup.value = htmlStr
         })
       }
     }))
+
+    this.logger.info('editorStore initialised')
   }
 
   async update(txt: string) {
@@ -88,6 +131,10 @@ export class EditorStore extends BaseStore {
   }
 
   setFilePath(filePath: string) {
+    this.currentFilePath.value = filePath
+  }
+
+  set(filePath: string) {
     this.currentFilePath.value = filePath
   }
 

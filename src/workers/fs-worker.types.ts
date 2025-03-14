@@ -36,12 +36,6 @@ type ListPayload = {
   operation: 'list'
 }
 
-type MovePayload = {
-  operation: 'move'
-  oldPath: string
-  newPath: string
-}
-
 type CopyPayload = {
   operation: 'copy'
   sourcePath: string
@@ -75,10 +69,6 @@ export const isExistsDirectory = (
 
 export const isList = (p: unknown | ListPayload): p is ListPayload =>
   isObject(p) && p.operation === 'list'
-
-export const isMove = (p: unknown | MovePayload): p is MovePayload =>
-  isObject(p) && p.operation === 'move' && typeof p.oldPath === 'string' &&
-  typeof p.newPath === 'string'
 
 export const isCopy = (p: unknown | CopyPayload): p is CopyPayload =>
   isObject(p) && p.operation === 'copy' && typeof p.sourcePath === 'string' &&

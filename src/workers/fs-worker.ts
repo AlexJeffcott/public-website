@@ -8,7 +8,6 @@ import {
   isExistsDirectory,
   isExistsFile,
   isList,
-  isMove,
   isRead,
   isSharedWorkerGlobalScope,
   isWrite,
@@ -75,11 +74,7 @@ hub.on('REQUEST', (message) => {
       .then((result) => hub.respond(message, result))
       .catch((err) => hub.error(message, err))
   } else if (isList(payload)) {
-    fs.list(payload.directory)
-      .then((result) => hub.respond(message, result))
-      .catch((err) => hub.error(message, err))
-  } else if (isMove(payload)) {
-    fs.move(payload.oldPath, payload.newPath)
+    fs.list()
       .then((result) => hub.respond(message, result))
       .catch((err) => hub.error(message, err))
   } else if (isCopy(payload)) {

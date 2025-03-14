@@ -4,13 +4,12 @@ import {
   CopyFileOrDirectory,
   CreateFileOrDirectory,
   DeleteFileOrDirectory,
-  MoveFileOrDirectory,
   NavigateToHomeBtn,
   ToggleColorThemeBtn,
   ToggleThemeBtn,
 } from '@/actions-ui/mod.ts'
 import { cls, encodeStringForUrl } from '@/utils/mod.ts'
-import { useSignalEffect } from '@/hooks/mod.ts'
+import { onMount, useRef, useSignalEffect } from '@/hooks/mod.ts'
 import { useStores } from '@/contexts/stores.tsx'
 import { type FSNode } from '@/types/fs.ts'
 import { Btn } from '@/ui-components/mod.ts'
@@ -20,12 +19,8 @@ export const FSPage: FunctionalComponent = () => {
 
   useSignalEffect(() => {
     // NOTE: when the hash changes, update the filePath
-    editorStore.setFilePath(decodeURIComponent(routerStore.hash.value).slice(1))
+    editorStore.setFilePath(routerStore.decodedHash.value)
   })
-  // <div dangerouslySetInnerHTML={{ __html: editorStore.markup.value }}></div>
-  //<code class={classes.fileContent}>
-  //  {editorStore.text}
-  //</code>
 
   return (
     <main class={classes.page}>
@@ -34,36 +29,23 @@ export const FSPage: FunctionalComponent = () => {
         <ToggleThemeBtn />
         <ToggleColorThemeBtn />
       </header>
-      <div class={classes.content}>
-        <div class={classes.fileTreeSection}>
-          <div class={classes.fileTree}>
-            <FileTree fsNode={finderStore.ls.value} />
-          </div>
-          <CreateFileOrDirectory />
-        </div>
-        <div>
-          <section
-            class={classes.fileViewerSection}
-          >
-            <span
-              class={classes.fileContentMarkup}
-              dangerouslySetInnerHTML={{ __html: editorStore.markup.value }}
-            >
-            </span>
-            <textarea
-              class={classes.fileContentTextArea}
-              autocomplete='off'
-              autocorrect='off'
-              autocapitalize='off'
-              spellcheck={false}
-              onInput={(e) => {
-                editorStore.update(e.currentTarget.value)
-              }}
-              value={editorStore.text.value}
-            >
-            </textarea>
-          </section>
-        </div>
+      <aside class={classes.fileTreeSection}>
+        {!finderStore.ls.value?.children?.length && <CreateFileOrDirectory />}
+        <FileTree fsNode={finderStore.ls.value} />
+      </aside>
+      <article class={classes.fileViewerSection}>
+        {routerStore.decodedHash.value
+          ? <WYSIWYG />
+          : (
+            <h1 class={classes.center}>
+              {finderStore.ls.value?.children?.length
+                ? 'Click on a file!'
+                : 'Create a file to get started!'}
+            </h1>
+          )}
+      </article>
+      <div class={classes.footer}>
+        {editorStore.currentFilePath.value.split('/').at(-1) || ''}
       </div>
     </main>
   )
@@ -90,7 +72,6 @@ const FileTree = ({ fsNode }: { fsNode: FSNode }) => {
             <div id={fsNode.path} popover='auto'>
               <CreateFileOrDirectory fsNode={fsNode} />
               <CopyFileOrDirectory fsNode={fsNode} />
-              <MoveFileOrDirectory fsNode={fsNode} />
               <DeleteFileOrDirectory fsNode={fsNode} />
             </div>
           </div>
@@ -141,5 +122,55 @@ const DirectoryLink: FunctionalComponent<{ fsNode: FSNode }> = (
       )}
       {fsNode.name}
     </span>
+  )
+}
+
+const WYSIWYG: FunctionalComponent = () => {
+  const { editorStore, routerStore } = useStores()
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const displayDivRef = useRef<HTMLDivElement>(null)
+
+  onMount(() => {
+    const textarea = textareaRef.current
+    const displayDiv = displayDivRef.current
+
+    if (!textarea || !displayDiv) return
+
+    const handleScroll = () => {
+      displayDiv.scrollTop = textarea.scrollTop
+      displayDiv.scrollLeft = textarea.scrollLeft
+    }
+
+    textarea.addEventListener('scroll', handleScroll)
+
+    return () => {
+      textarea.removeEventListener('scroll', handleScroll)
+    }
+  })
+
+  return (
+    <>
+      <span
+        ref={displayDivRef}
+        class={classes.fileContentMarkup}
+        dangerouslySetInnerHTML={{ __html: editorStore.markup.value }}
+      >
+      </span>
+
+      <textarea
+        ref={textareaRef}
+        disabled={!routerStore.decodedHash.value}
+        class={classes.fileContentTextArea}
+        autocomplete='off'
+        autocorrect='off'
+        autocapitalize='off'
+        spellcheck={false}
+        onInput={(e) => {
+          editorStore.update(e.currentTarget.value)
+        }}
+        value={editorStore.text.value}
+      >
+      </textarea>
+    </>
   )
 }

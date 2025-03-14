@@ -14,6 +14,7 @@ export class RouterStore extends BaseStore {
   }>
   path: ReadonlySignal<string>
   hash: ReadonlySignal<string>
+  decodedHash: ReadonlySignal<string>
   search: ReadonlySignal<typeof globalThis.location.search>
 
   constructor() {
@@ -27,6 +28,9 @@ export class RouterStore extends BaseStore {
 
     this.path = computed(() => this.location.value.path)
     this.hash = computed(() => this.location.value.hash)
+    this.decodedHash = computed(() =>
+      decodeURIComponent(this.location.value.hash).slice(1)
+    )
     this.search = computed(() => this.location.value.search)
 
     globalThis.addEventListener('popstate', (_e) => {

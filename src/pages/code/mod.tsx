@@ -1,5 +1,4 @@
 import { Fragment, type FunctionalComponent } from 'preact'
-import classes from '@/pages/code/code.module.css'
 import {
   NavigateToHomeBtn,
   ToggleColorThemeBtn,

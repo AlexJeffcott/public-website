@@ -1,14 +1,18 @@
 .page {
-  height: 100vh;
-  width: 100vw;
+  min-height: 100vh;
   display: grid;
-  grid-template-rows: min-content auto;
-  grid-template-columns: 1fr;
+  grid-template-columns: 300px 1fr;
+  grid-template-rows: 32px 1fr 32px;
   padding: 1rem;
-  row-gap: 16px;
+  gap: 16px;
+  grid-template-areas:
+    'header header'
+    'nav    article'
+    'nav    footer';
 }
 
 .header {
+  grid-area: header;
   display: grid;
   grid-template-rows: 100%;
   grid-template-columns: 1fr min-content min-content;
@@ -17,19 +21,11 @@
   gap: 8px;
 }
 
-.content {
-  display: grid;
-  grid-template-columns: 275px auto;
-  grid-template-rows: auto;
-  column-gap: 16px;
-}
-
 .fileTreeSection {
-  display: grid;
-  grid-template-rows: auto min-content;
-}
-
-.fileTree {
+  grid-area: nav;
+  padding: 4px;
+  overflow-y: auto;
+  max-height: calc(100vh - 32px - 16px - 16px - 16px);
   display: grid;
   grid-auto-rows: min-content;
   align-items: start;
@@ -43,11 +39,10 @@
   display: grid;
   grid-auto-flow: column;
   align-items: center;
-  grid-template-columns: auto 32px;
+  grid-template-columns: auto 34px;
   column-gap: var(--fs-item-space);
   grid-template-rows: var(--fs-item-height);
   width: 100%;
-  height: 100%;
   position: relative;
 }
 
@@ -92,6 +87,13 @@
   font-size: 26px;
 }
 
+.center {
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  height: 100%;
+}
+
 .btn {
   height: var(--fs-item-height);
   line-height: var(--fs-item-height);
@@ -114,13 +116,6 @@
   align-self: anchor-center;
 }
 
-.btn:has(+ div:popover-open)::after {
-  content: '•';
-  position: absolute;
-  left: -12px;
-  font-size: 26px;
-}
-
 .nav {
   display: flex;
   flex-direction: column;
@@ -129,11 +124,15 @@
 }
 
 .fileViewerSection {
+  grid-area: article;
+  padding: 1rem;
+  overflow-y: auto;
   border: 1px solid var(--txt-primary);
   border-radius: 4px;
   height: 100%;
   position: relative;
   background-color: light-dark(#ffffff, #1f1f1f);
+  max-width: 800px;
   &:hover,
   &:active,
   &:focus-visible,
@@ -176,9 +175,14 @@
 .fileContentMarkup {
   padding: 0px;
   white-space: pre;
-  overflow: auto;
+  overflow: hidden;
   inset: 0 16px;
   position: absolute;
   border: none;
   outline: none;
+}
+
+.footer {
+  grid-area: footer;
+  max-width: 800px;
 }
