@@ -9,7 +9,10 @@ export class UIStore extends BaseStore {
   constructor() {
     super('uiStore')
 
-    this.#colorThemePersistence = new PrimitivePersistence('colorTheme', 'grey')
+    this.#colorThemePersistence = new PrimitivePersistence(
+      'colorTheme',
+      '#a57373',
+    )
 
     this.colorTheme = this.#colorThemePersistence.current
 
@@ -26,7 +29,7 @@ export class UIStore extends BaseStore {
   }
 
   setColorTheme(color: string) {
-    this.logger.debug('Seting color theme', {
+    this.logger.debug('Setting color theme', {
       currentColorTheme: this.colorTheme.value,
     })
     this.#colorThemePersistence.set(color)
