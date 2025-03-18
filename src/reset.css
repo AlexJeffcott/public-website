@@ -73,6 +73,14 @@ img {
   border-style: none;
 }
 
+input[type='color']::-moz-color-swatch {
+  border: none;
+}
+
+input[type='color']::-webkit-color-swatch {
+  border: none;
+}
+
 button,
 input,
 optgroup,

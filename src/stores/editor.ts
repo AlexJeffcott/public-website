@@ -1,6 +1,5 @@
 import {
   computed,
-  effect,
   type ReadonlySignal,
   type Signal,
   signal,
@@ -10,7 +9,6 @@ import { BaseStore } from '@/stores/base.ts'
 import { fsHandlers } from '@/broadcast/main.ts'
 
 let lastPath = ''
-let lastText = ''
 let createMarkup: ((txt: string, arg: unknown) => Promise<string>) | undefined =
   undefined
 const v = '@3.1.0'
@@ -68,57 +66,44 @@ function getLangByFilePath(path?: string) {
 export class EditorStore extends BaseStore {
   currentFilePath: Signal<string>
   text: ReadonlySignal<string>
-  markup: Signal<string>
-  current: AsyncSignal<string | undefined>
+  markup: ReadonlySignal<string>
+  current: AsyncSignal<[string, string] | undefined>
   disposes: Set<() => void>
 
   constructor() {
     super('editorStore')
     this.currentFilePath = signal<string>('')
-    this.markup = signal<string>('')
-    this.current = asyncSignal<string | undefined>()
+    this.current = asyncSignal<[string, string] | undefined>()
     this.disposes = new Set()
 
     this.current.init(() => [
       async (path) => {
         if (typeof path === 'string') {
           const txt = await fsHandlers.read(path)
-          return txt
+          const markup = createMarkup
+            ? await createMarkup(txt, {
+              lang: getLangByFilePath(path),
+              themes: { dark: 'min-dark', light: 'min-light' },
+            })
+            : ''
+          return [txt, markup]
         }
-        return ''
+        return ['', '']
       },
       () => {},
     ])
 
-    this.disposes.add(effect(() => {
-      const path = this.currentFilePath.value
-      if (lastPath !== path) {
-        // NOTE: when the filePath changes fetch that file
-        lastPath = path
-        this.current.fetch(path)
-      }
-    }))
-
     this.text = computed(() => {
-      const text = this.current.state.value || ''
-      if (text !== lastText) {
-        lastText = text
-      }
-      return lastText
+      return Array.isArray(this.current?.state?.value)
+        ? this.current.state.value[0]
+        : ''
     })
 
-    this.disposes.add(effect(() => {
-      const text = this.text.value
-      if (text && createMarkup) {
-        this.markup.value = ''
-        createMarkup(text, {
-          lang: getLangByFilePath(this.currentFilePath.value),
-          themes: { dark: 'min-dark', light: 'min-light' },
-        }).then((htmlStr: string) => {
-          this.markup.value = htmlStr
-        })
-      }
-    }))
+    this.markup = computed(() => {
+      return Array.isArray(this.current?.state?.value)
+        ? this.current.state.value[1]
+        : ''
+    })
 
     this.logger.info('editorStore initialised')
   }
@@ -126,12 +111,18 @@ export class EditorStore extends BaseStore {
   async update(txt: string) {
     const path = this.currentFilePath.value
     // NOTE: write to the file and then fetch
-    await fsHandlers.write(this.currentFilePath.peek(), txt)
+    await fsHandlers.write(path, txt)
     this.current.fetch(path)
   }
 
   setFilePath(filePath: string) {
-    this.currentFilePath.value = filePath
+    if (lastPath !== filePath) {
+      this.currentFilePath.value = filePath
+      this.current.fetch(filePath)
+      lastPath = filePath
+    } else {
+      this.currentFilePath.value = lastPath
+    }
   }
 
   set(filePath: string) {

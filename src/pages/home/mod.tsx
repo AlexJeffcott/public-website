@@ -3,8 +3,7 @@ import classes from '@/pages/home/home.module.css'
 import {
   NavigateToFSBtn,
   NavigateToGenImgBtn,
-  ToggleColorThemeBtn,
-  ToggleThemeBtn,
+  SetColorThemeInput,
 } from '@/actions-ui/mod.ts'
 
 export const HomePage: FunctionalComponent = () => {
@@ -12,8 +11,7 @@ export const HomePage: FunctionalComponent = () => {
     <main class={classes.page}>
       <header class={classes.header}>
         <div></div>
-        <ToggleThemeBtn />
-        <ToggleColorThemeBtn />
+        <SetColorThemeInput />
       </header>
       <div class={classes.content}>
         <h1>Welcome</h1>

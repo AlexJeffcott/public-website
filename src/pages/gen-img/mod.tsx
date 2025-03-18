@@ -4,13 +4,9 @@ import { cls } from '@/utils/mod.ts'
 import { isObject } from '@/types/is-object.ts'
 import { useSignal } from '@preact/signals'
 import { PrimitivePersistence } from '@/persistence/mod.ts'
-import {
-  NavigateToHomeBtn,
-  ToggleColorThemeBtn,
-  ToggleThemeBtn,
-} from '@/actions-ui/mod.ts'
+import { NavigateToHomeBtn, SetColorThemeInput } from '@/actions-ui/mod.ts'
 
-const openAIKey = new PrimitivePersistence('openaiApiKey')
+const openAIKey = new PrimitivePersistence('openaiApiKey', '')
 
 const GenImage: FunctionalComponent = () => {
   const imageResult = useSignal('')
@@ -148,8 +144,7 @@ export const GenImgPage: FunctionalComponent = () => {
     <article class={classes.page}>
       <header class={classes.header}>
         <NavigateToHomeBtn />
-        <ToggleThemeBtn />
-        <ToggleColorThemeBtn />
+        <SetColorThemeInput />
       </header>
       <h1>Generate an Image with Dall-e-3</h1>
       <main class={classes.content}>

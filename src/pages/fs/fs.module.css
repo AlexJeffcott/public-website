@@ -94,10 +94,10 @@
   height: 100%;
 }
 
-.btn {
-  height: var(--fs-item-height);
-  line-height: var(--fs-item-height);
-  border-radius: calc(var(--fs-item-height) / 4);
+/*for some reason I need to increase the specificity here…*/
+/*TODO: find out why*/
+button.btn {
+  --height: var(--fs-item-height);
 }
 
 :popover-open {

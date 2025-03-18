@@ -4,7 +4,8 @@ import { type Stores } from '@/stores/mod.ts'
 
 type Details = {
   cb?: () => void
-  eventType: 'toggletheme'
+  color: string
+  eventType: 'setcolortheme'
 }
 
 export function isDetails(
@@ -13,14 +14,15 @@ export function isDetails(
   return (
     isObject(d) &&
     (d.cb === undefined || typeof d.cb === 'function') &&
-    d.eventType === 'toggletheme'
+    typeof d.color === 'string' &&
+    d.eventType === 'setcolortheme'
   )
 }
 
 export class ActionEvent extends Event {
   details?: Details
   constructor(details: Details) {
-    super('toggletheme', { bubbles: true })
+    super('setcolortheme', { bubbles: true })
     this.details = details
   }
 }
@@ -36,25 +38,27 @@ export function createCB({
     const details = e.details
     if (!uiStore || !details) {
       handleError(
-        'the toggletheme action needs a uiStore and details.',
+        'the setcolortheme action needs a uiStore and details.',
       )
       return
     }
-    action({ uiStore })
+    action({ uiStore, color: details.color })
   }
 }
 
-function action({ uiStore }: { uiStore: Stores['uiStore'] }) {
+function action(
+  { uiStore, color }: { color: string; uiStore: Stores['uiStore'] },
+) {
   try {
-    uiStore.toggleTheme()
+    uiStore.setColorTheme(color)
   } catch (err) {
     try {
       handleError(
-        `the toggletheme action errored: ${JSON.stringify(err)}`,
+        `the setcolortheme action errored: ${JSON.stringify(err)}`,
       )
     } catch {
       handleError(
-        'the toggletheme action errored and was not serializable',
+        'the setcolortheme action errored and was not serializable',
       )
     }
   }

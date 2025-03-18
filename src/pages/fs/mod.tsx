@@ -5,8 +5,7 @@ import {
   CreateFileOrDirectory,
   DeleteFileOrDirectory,
   NavigateToHomeBtn,
-  ToggleColorThemeBtn,
-  ToggleThemeBtn,
+  SetColorThemeInput,
 } from '@/actions-ui/mod.ts'
 import { cls, encodeStringForUrl } from '@/utils/mod.ts'
 import { onMount, useRef, useSignalEffect } from '@/hooks/mod.ts'
@@ -26,8 +25,7 @@ export const FSPage: FunctionalComponent = () => {
     <main class={classes.page}>
       <header class={classes.header}>
         <NavigateToHomeBtn />
-        <ToggleThemeBtn />
-        <ToggleColorThemeBtn />
+        <SetColorThemeInput />
       </header>
       <aside class={classes.fileTreeSection}>
         {!finderStore.ls.value?.children?.length && <CreateFileOrDirectory />}
