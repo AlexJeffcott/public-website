@@ -1,3 +1,5 @@
+import { type FSNode } from '@/types/fs.ts'
+
 /**
  * Type guard to check if a handle is a FileSystemDirectoryHandle
  * @param handle The handle to check
@@ -20,20 +22,13 @@ function isFileHandle(
   return handle.kind === 'file'
 }
 
-type FileSystemNode = {
-  name: string
-  kind: 'file' | 'directory'
-  path: string
-  children?: FileSystemNode[]
-}
-
 interface FileSystemAdapter {
   write(path: string, data: ArrayBuffer | string): Promise<void>
-  read(path: string): Promise<ArrayBuffer | undefined>
+  read(path: string): Promise<File | undefined>
   delete(path: string): Promise<void>
   existsFile(path: string): Promise<boolean>
   existsDirectory(path: string): Promise<boolean>
-  list(): Promise<FileSystemNode>
+  list(): Promise<FSNode>
   move(oldPath: string, newPath: string): Promise<void>
   copy(sourcePath: string, destinationPath: string): Promise<void>
   createDirectory(path: string): Promise<void>
@@ -65,7 +60,6 @@ class OPFSAdapter implements FileSystemAdapter {
             handle = await this.getDirectoryHandle(handle, dirName, true)
           }
 
-          console.log(parts, handle)
           const fileHandle = await handle.getFileHandle(fileName, {
             create: true,
           })
@@ -76,30 +70,18 @@ class OPFSAdapter implements FileSystemAdapter {
             fileHandle
             await writable.close()
           }
-
-          //const accessHandle = await fileHandle?.createSyncAccessHandle()
-          //if (accessHandle) {
-          //  console.log('data', data)
-          //  if (typeof data === 'string') {
-          //    const encoder = new TextEncoder()
-          //    const encodedMessage = encoder.encode(data)
-          //    accessHandle.write(encodedMessage)
-          //    accessHandle.flush()
-          //    accessHandle.close()
-          //  }
-          //}
         },
       ).catch((err) => console.error('getting OPFS root dir failed: ' + err))
     }
   }
 
-  async read(path: string): Promise<ArrayBuffer | undefined> {
+  async read(path: string): Promise<File | undefined> {
     const parts = path.split('/').filter((part) => part.length > 0)
-    const fileName = parts.pop()
+    const filename = parts.pop()
 
-    let buffer = undefined
+    let file = undefined
 
-    if (typeof fileName === 'string') {
+    if (typeof filename === 'string') {
       try {
         await navigator.storage.getDirectory().then(
           async (rootDirHandle) => {
@@ -108,12 +90,11 @@ class OPFSAdapter implements FileSystemAdapter {
               handle = await this.getDirectoryHandle(handle, dirName, false)
             }
 
-            const fileHandle = await handle.getFileHandle(fileName, {
+            const fileHandle = await handle.getFileHandle(filename, {
               create: false,
             })
             if (fileHandle) {
-              const file = await fileHandle.getFile()
-              buffer = await file.arrayBuffer()
+              file = await fileHandle.getFile()
             }
           },
         )
@@ -122,7 +103,7 @@ class OPFSAdapter implements FileSystemAdapter {
       }
     }
 
-    return buffer
+    return file
   }
 
   async delete(path: string): Promise<void> {
@@ -188,7 +169,7 @@ class OPFSAdapter implements FileSystemAdapter {
     return exists
   }
 
-  async list(): Promise<FileSystemNode> {
+  async list(): Promise<FSNode> {
     return await navigator.storage.getDirectory().then(async (root) => {
       return await traverseDirectory(root, '')
     })
@@ -209,7 +190,8 @@ class OPFSAdapter implements FileSystemAdapter {
         return
       } else {
         // copy file and end
-        const data = await this.read(sourcePath)
+        const file = await this.read(sourcePath)
+        const data = await file?.arrayBuffer()
         if (data) {
           return this.write(destPath, data)
         }
@@ -232,8 +214,6 @@ class OPFSAdapter implements FileSystemAdapter {
             (handle: FileSystemFileHandle) => {
               handle.getFile().then((file) =>
                 file.arrayBuffer().then((data) => {
-                  console.log('here', handle)
-                  console.log(s, d, sourcePath)
                   this.write(
                     (sourcePath + '/' + handle.name).replace(s, d),
                     data,
@@ -303,7 +283,7 @@ export class FileSystem {
     await this.adapter.write(path, data)
   }
 
-  async read(path: string): Promise<ArrayBuffer | undefined> {
+  async read(path: string): Promise<File | undefined> {
     return await this.adapter.read(path)
   }
 
@@ -319,7 +299,7 @@ export class FileSystem {
     return await this.adapter.existsDirectory(path)
   }
 
-  async list(): Promise<FileSystemNode> {
+  async list(): Promise<FSNode> {
     return await this.adapter.list()
   }
 
@@ -358,8 +338,8 @@ async function traverseDirectoryWithFileSideEffect(
 async function traverseDirectory(
   dirHandle: FileSystemDirectoryHandle,
   path: string,
-): Promise<FileSystemNode> {
-  const children: FileSystemNode[] = []
+): Promise<FSNode> {
+  const children: FSNode[] = []
 
   for await (const [name, handle] of dirHandle.entries()) {
     const entryPath = path ? `${path}/${name}` : name

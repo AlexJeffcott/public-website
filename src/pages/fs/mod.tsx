@@ -12,9 +12,21 @@ import { onMount, useRef, useSignalEffect } from '@/hooks/mod.ts'
 import { useStores } from '@/contexts/stores.tsx'
 import { type FSNode } from '@/types/fs.ts'
 import { Btn } from '@/ui-components/mod.ts'
+import { getFileType } from '@/utils/get-file-type.ts'
 
 export const FSPage: FunctionalComponent = () => {
   const { finderStore, routerStore, editorStore } = useStores()
+
+  const handleDrop = (e: DragEvent) => {
+    e.preventDefault()
+    if (e.dataTransfer) {
+      finderStore.importFilesAndDirectories(e.dataTransfer)
+    }
+  }
+
+  const handleDragOver = (e: DragEvent) => {
+    e.preventDefault()
+  }
 
   useSignalEffect(() => {
     // NOTE: when the hash changes, update the filePath
@@ -22,7 +34,11 @@ export const FSPage: FunctionalComponent = () => {
   })
 
   return (
-    <main class={classes.page}>
+    <main
+      class={classes.page}
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
+    >
       <header class={classes.header}>
         <NavigateToHomeBtn />
         <SetColorThemeInput />
@@ -30,10 +46,29 @@ export const FSPage: FunctionalComponent = () => {
       <aside class={classes.fileTreeSection}>
         {!finderStore.ls.value?.children?.length && <CreateFileOrDirectory />}
         <FileTree fsNode={finderStore.ls.value} />
+        {finderStore.importStatus.value.errors.length > 0 && (
+          <div>
+            <h3>Errors:</h3>
+            <ul>
+              {finderStore.importStatus.value.errors.map((error, i) => (
+                <li key={i}>{error}</li>
+              ))}
+            </ul>
+          </div>
+        )}
       </aside>
       <article class={classes.fileViewerSection}>
         {routerStore.decodedHash.value
-          ? <WYSIWYG />
+          ? editorStore.text.value.startsWith('blob:http')
+            ? (
+              <MediaItem
+                path={editorStore.currentFilePath.value.split('/').at(-1) || ''}
+                src={editorStore.text.value}
+              />
+            )
+            : editorStore.current.status.value === 'loading'
+            ? <p>loading</p>
+            : <WYSIWYG />
           : (
             <h1 class={classes.center}>
               {finderStore.ls.value?.children?.length
@@ -52,10 +87,9 @@ export const FSPage: FunctionalComponent = () => {
 const FileTree = ({ fsNode }: { fsNode: FSNode }) => {
   const { routerStore } = useStores()
   const hash = `#${encodeStringForUrl(fsNode.path)}`
-
   return (
     <>
-      {fsNode.path &&
+      {fsNode.path && !fsNode.name.endsWith('.crswap') &&
         (
           <div
             class={cls(
@@ -68,7 +102,8 @@ const FileTree = ({ fsNode }: { fsNode: FSNode }) => {
               : <DirectoryLink fsNode={fsNode} />}
             <Btn class={classes.btn} popovertarget={fsNode.path}>…</Btn>
             <div id={fsNode.path} popover='auto'>
-              <CreateFileOrDirectory fsNode={fsNode} />
+              {fsNode.kind === 'directory' &&
+                <CreateFileOrDirectory fsNode={fsNode} />}
               <CopyFileOrDirectory fsNode={fsNode} />
               <DeleteFileOrDirectory fsNode={fsNode} />
             </div>
@@ -170,5 +205,113 @@ const WYSIWYG: FunctionalComponent = () => {
       >
       </textarea>
     </>
+  )
+}
+
+//import { render } from 'preact';
+//import { useSignal, useSignalEffect } from '@preact/signals';
+//import { useCallback } from 'preact/hooks';
+//
+//function AudioPlayer() {
+//  const audioSrc = useSignal<string | null>(null);
+//  const isPlaying = useSignal(false);
+//  const audioRef = useSignal<HTMLAudioElement | null>(null);
+//
+//  // Clean up object URL when component unmounts or src changes
+//  useSignalEffect(() => {
+//    return () => {
+//      if (audioSrc.value) {
+//        URL.revokeObjectURL(audioSrc.value);
+//      }
+//    };
+//  });
+//
+//  const playAudioFromOPFS = useCallback(async (fileName: string) => {
+//    try {
+//      // Get OPFS root directory
+//      const root = await navigator.storage.getDirectory();
+//
+//      // Get file handle and file
+//      const fileHandle = await root.getFileHandle(fileName);
+//      const file = await fileHandle.getFile();
+//
+//      // Create object URL and set it as audio source
+//      const objectURL = URL.createObjectURL(file);
+//      audioSrc.value = objectURL;
+//
+//      // Play the audio
+//      if (audioRef.value) {
+//        await audioRef.value.play();
+//        isPlaying.value = true;
+//      }
+//    } catch (error) {
+//      console.error('Error playing audio from OPFS:', error);
+//    }
+//  }, []);
+//
+//  const togglePlayPause = useCallback(() => {
+//    if (audioRef.value) {
+//      if (isPlaying.value) {
+//        audioRef.value.pause();
+//      } else {
+//        audioRef.value.play();
+//      }
+//      isPlaying.value = !isPlaying.value;
+//    }
+//  }, []);
+//
+//  return (
+//    <div>
+//      <audio
+//        ref={(el) => { audioRef.value = el; }}
+//        src={audioSrc.value || undefined}
+//        onEnded={() => { isPlaying.value = false; }}
+//      />
+//
+//      <button onClick={() => playAudioFromOPFS('my-audio.mp3')}>
+//        Load and Play from OPFS
+//      </button>
+//
+//      {audioSrc.value && (
+//        <button onClick={togglePlayPause}>
+//          {isPlaying.value ? 'Pause' : 'Play'}
+//        </button>
+//      )}
+//    </div>
+//  );
+//}
+//
+//
+const MediaItem = ({ path, src }: { path: string; src: string }) => {
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  const handleLoad = () => {
+    console.log('loaded')
+  }
+
+  const renderMedia = () => {
+    switch (getFileType(path)) {
+      case 'image':
+        return <img src={src} onLoad={handleLoad} />
+      case 'video':
+        return <video src={src} controls onLoadedMetadata={handleLoad} />
+      case 'audio':
+        return (
+          <div class={classes.audioWrapper}>
+            <audio src={src} controls onLoadedMetadata={handleLoad} />
+          </div>
+        )
+      default:
+        return null
+    }
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      class={classes.responsiveMediaContainer}
+    >
+      {renderMedia()}
+    </div>
   )
 }

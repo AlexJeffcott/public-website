@@ -1,5 +1,11 @@
 import { createBroadcastHub } from '@/broadcast/mod.ts'
 import { computed, type Signal, signal } from '@preact/signals'
+import {
+  type FileSystemItem,
+  type FSNode,
+  isFileSystemItem,
+} from '@/types/fs.ts'
+import { isTextFile } from '@/utils/get-file-type.ts'
 
 function createSharedWorker(
   scriptPath: string,
@@ -79,57 +85,70 @@ hub.on('ERROR', (message) => {
   ])
 })
 
-type FileSystemNode = {
-  name: string
-  kind: 'file' | 'directory'
-  path: string
-  children?: FileSystemNode[]
-}
-
+// FIX: this does not have type safety
 const fsHandlers = {
   read(path: string) {
-    return hub.request<ArrayBuffer>('fs-worker', {
+    return hub.request<string>('fs-worker', {
       operation: 'read',
       path,
-    }).then((arrayBuffer) => {
-      //Common operations with ArrayBuffer:
-      //
-      //1. Convert to string:
-      // For text files
-      //const text = new TextDecoder().decode(arrayBuffer);
-      //
-      //2. Process as binary data:
-      // Access raw binary data
-      //const dataView = new DataView(arrayBuffer);
-      // Read specific data types
-      //const value = dataView.getUint8(0); // Read first byte
-      //
-      //3. Convert to other formats:
-      // To Blob (for file operations)
-      //const blob = new Blob([arrayBuffer], { type: 'application/octet-stream' });
-      //
-      // To base64 (for data URLs)
-      //const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-      //
-      //4. Use with specific APIs:
-      // For images
-      //const bitmap = await createImageBitmap(new Blob([arrayBuffer]));
-      //
-      // For audio
-      //const audioContext = new AudioContext();
-      //const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-
-      // assume text
-      const txt = new TextDecoder().decode(arrayBuffer)
-      return txt
+    }).then((result) => {
+      return result
     })
   },
-  write(path: string, data: string | ArrayBuffer) {
-    return hub.request<void>('fs-worker', {
-      operation: 'write',
-      path,
-      data,
-    })
+  write(path: string, data: FileSystemItem | string) {
+    if (typeof data !== 'string') {
+      return data.getFile().then((file) => {
+        // handle txt files differently
+        if (isTextFile(file.name)) {
+          return file.text().then((data) =>
+            hub.request<void>('fs-worker', {
+              operation: 'write',
+              path,
+              data,
+            })
+          )
+        }
+
+        hub.request<void>('fs-worker', {
+          operation: 'mediaFileInit',
+          path,
+          name: file.name,
+          size: file.size,
+          type: file.type,
+        }).catch((err) => console.error(err))
+
+        const stream = file.stream()
+        const reader = stream.getReader()
+
+        function readAndPost() {
+          return reader.read().then(({ done, value }) => {
+            // Send each chunk as an ArrayBuffer (which is transferable)
+            if (value) {
+              hub.request<void>('fs-worker', {
+                operation: 'mediaFileAddChunk',
+                path,
+                data: value.buffer,
+              })
+            }
+            if (!done) {
+              readAndPost()
+            } else {
+              hub.request<void>('fs-worker', {
+                operation: 'mediaFileComplete',
+                path,
+              })
+            }
+          }).catch((err) => console.error(err))
+        }
+        return readAndPost()
+      }).catch((err) => console.error(err))
+    } else {
+      return hub.request<void>('fs-worker', {
+        operation: 'write',
+        path,
+        data,
+      })
+    }
   },
   delete(path: string) {
     return hub.request<void>('fs-worker', {
@@ -150,7 +169,7 @@ const fsHandlers = {
     })
   },
   list() {
-    return hub.request<FileSystemNode>('fs-worker', {
+    return hub.request<FSNode>('fs-worker', {
       operation: 'list',
     })
   },

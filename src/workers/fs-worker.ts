@@ -8,10 +8,14 @@ import {
   isExistsDirectory,
   isExistsFile,
   isList,
+  isMediaFileAddChunk,
+  isMediaFileComplete,
+  isMediaFileInit,
   isRead,
   isSharedWorkerGlobalScope,
   isWrite,
 } from '@/workers/fs-worker.types.ts'
+import { getFileType } from '@/utils/get-file-type.ts'
 
 const ctx = isSharedWorkerGlobalScope(self) ? self : null
 
@@ -48,24 +52,20 @@ ctx.onconnect = (e: MessageEvent) => {
   })
 }
 
+const hash = new Map<string, string>()
+
+let fileChunks: Uint8Array[] = []
+let fileMetadata:
+  | { name: string; size: number; type: string; path: string }
+  | null = null
+
 hub.on('REQUEST', (message) => {
   // skip messages not aimed at this worker
   if (message.target !== NAME) return
 
   const payload = message.payload
-  if (isRead(payload)) {
-    fs.read(payload.path)
-      .then((result) => hub.respond(message, result))
-      .catch((err) => hub.error(message, err))
-  } else if (isWrite(payload)) {
-    fs.write(payload.path, payload.data)
-      .then((result) => hub.respond(message, result))
-      .catch((err) => hub.error(message, err))
-  } else if (isDelete(payload)) {
-    fs.delete(payload.path)
-      .then((result) => hub.respond(message, result))
-      .catch((err) => hub.error(message, err))
-  } else if (isExistsFile(payload)) {
+
+  if (isExistsFile(payload)) {
     fs.existsFile(payload.path)
       .then((result) => hub.respond(message, result))
       .catch((err) => hub.error(message, err))
@@ -75,6 +75,54 @@ hub.on('REQUEST', (message) => {
       .catch((err) => hub.error(message, err))
   } else if (isList(payload)) {
     fs.list()
+      .then((result) => hub.respond(message, result))
+      .catch((err) => hub.error(message, err))
+  } else if (isMediaFileInit(payload)) {
+    // TODO: check to see whether we can have concurrancy issues here
+    // if so we need to use a map
+    fileMetadata = {
+      name: payload.name,
+      path: payload.path,
+      size: payload.size,
+      type: payload.type,
+    }
+    fileChunks = []
+    hub.respond(message, undefined)
+  } else if (isMediaFileAddChunk(payload)) {
+    fileChunks.push(new Uint8Array(payload.data))
+    hub.respond(message, undefined)
+  } else if (isMediaFileComplete(payload)) {
+    processFile(fileMetadata, fileChunks)
+    hub.respond(message, undefined)
+  } else if (isRead(payload)) {
+    fs.read(payload.path)
+      .then(async (file) => {
+        // NOTE: this first then is like a processing middleware
+        if (file) {
+          if (hash.has(payload.path)) {
+            return hash.get(payload.path)
+            //url && URL.revokeObjectURL(url)
+          }
+          if (getFileType(payload.path) === 'text') {
+            const txt = await file.text()
+            return txt
+          }
+          const stream = file.stream()
+          const response = new Response(stream)
+          const blob = await response.blob()
+          const url = URL.createObjectURL(blob)
+          hash.set(payload.path, url)
+          return url
+        }
+      })
+      .then((processedResult) => hub.respond(message, processedResult))
+      .catch((err) => hub.error(message, err))
+  } else if (isWrite(payload)) {
+    fs.write(payload.path, payload.data)
+      .then((result) => hub.respond(message, result))
+      .catch((err) => hub.error(message, err))
+  } else if (isDelete(payload)) {
+    fs.delete(payload.path)
       .then((result) => hub.respond(message, result))
       .catch((err) => hub.error(message, err))
   } else if (isCopy(payload)) {
@@ -93,3 +141,20 @@ hub.on('REQUEST', (message) => {
 hub.on('*', (message) => {
   console.log(NAME, message)
 })
+
+function processFile(
+  metadata: { name: string; size: number; type: string; path: string } | null,
+  chunks: Uint8Array[],
+) {
+  if (metadata !== null) {
+    const blob = new Blob(chunks, { type: metadata.type })
+    blob.arrayBuffer().then((buffer) => {
+      fs.write(metadata.path, buffer)
+      const url = URL.createObjectURL(blob)
+      metadata && hash.set(metadata.path, url)
+      fileChunks = []
+    }).catch((err) => {
+      console.error(err)
+    })
+  }
+}

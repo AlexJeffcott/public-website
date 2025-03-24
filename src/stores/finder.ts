@@ -1,447 +1,29 @@
-import { type Signal, signal } from '@preact/signals'
+import {
+  computed,
+  effect,
+  type ReadonlySignal,
+  type Signal,
+  signal,
+} from '@preact/signals'
 import { BaseStore } from '@/stores/base.ts'
 import { fsHandlers } from '@/broadcast/main.ts'
-import { type FSNode } from '@/types/fs.ts'
-
-function getPlaceholderByExt(ext?: string) {
-  switch (ext) {
-    case 'ts': {
-      return `const defaultArr = new Array(999999).fill(undefined).map(i => i)
-
-function run(arr: number[] = defaultArr): number {
-    let sum = 0
-    for (let i = 0; i < arr.length; i++) {
-            sum += arr[i]
-    }
-    return sum;
-}`
-    }
-    case 'tsx': {
-      return `import { type FunctionComponent, type JSX } from "preact";
-
-handleClick(event: JSX.TargetedMouseEvent<HTMLButtonElement>) {
-    alert(event.currentTarget.tagName);
-  }
-
-const Card: FunctionComponent<{ title: string }> = ({ title, children }) => {
-  return (
-    <div class="card">
-      <h1>{title}</h1>
-      <button onClick={handleClick}>
-        {children}
-      </button>
-
-      {children}
-    </div>
-  );
-};
-`
-    }
-    case 'js': {
-      return `const defaultArr = new Array(999999).fill(undefined).map(i => i)
-
-function run(arr = defaultArr) {
-    let sum = 0
-    for (let i = 0; i < arr.length; i++) {
-            sum += arr[i]
-    }
-    return sum;
-}`
-    }
-    case 'jsx': {
-      return `import { signal } from "@preact/signals";
-
-// Create a signal that can be subscribed to:
-const count = signal(0);
-
-function Counter() {
-  // Accessing .value in a component automatically re-renders when it changes:
-  const value = count.value;
-
-  const increment = () => {
-    // A signal is updated by assigning to the ‘.value’ property:
-    count.value++;
-  }
-
-  return (
-    <div>
-      <p>Count: {value}</p>
-      <button onClick={increment}>click me</button>
-    </div>
-  );
-}`
-    }
-    case 'json': {
-      return `{
-  "squadName": "Super hero squad",
-  "homeTown": "Metro City",
-  "formed": 2016,
-  "secretBase": "Super tower",
-  "active": true,
-  "members": [
-    {
-      "name": "Molecule Man",
-      "age": 29,
-      "secretIdentity": "Dan Jukes",
-      "powers": ["Radiation resistance", "Turning tiny", "Radiation blast"]
-    },
-    {
-      "name": "Madame Uppercut",
-      "age": 39,
-      "secretIdentity": "Jane Wilson",
-      "powers": [
-        "Million tonne punch",
-        "Damage resistance",
-        "Superhuman reflexes"
-      ]
-    },
-    {
-      "name": "Eternal Flame",
-      "age": 1000000,
-      "secretIdentity": "Unknown",
-      "powers": [
-        "Immortality",
-        "Heat Immunity",
-        "Inferno",
-        "Teleportation",
-        "Interdimensional travel"
-      ]
-    }
-  ],
-  "from": "https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/JSON"
-}`
-    }
-    case 'html': {
-      return `<!DOCTYPE html>
-<html lang="en-us">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>MDN Web Docs Example: Toggling full-screen mode</title>
-    <link rel="stylesheet" href="styles.css">
-    <style class="editable">
-        video::backdrop {
-          background-color: #448;
-        }
-    </style>
-
-    <!-- import the webpage's javascript file -->
-    <script src="script.js" defer></script>
-  </head>
-  <body>
-    <section class="preview">
-      <video controls
-        src="https://archive.org/download/BigBuckBunny_124/Content/big_buck_bunny_720p_surround.mp4"
-        poster="https://peach.blender.org/wp-content/uploads/title_anouncement.jpg?x11217"
-        width="620">
-
-        Sorry, your browser doesn't support embedded videos.  Time to upgrade!
-
-      </video>
-    </section>
-
-<textarea class="playable playable-css" style="height: 100px;">
-video::backdrop {
-  background-color: #448;
-}
-</textarea>
-
-<textarea class="playable playable-html" style="height: 200px;">
-<video controls
-  src="https://archive.org/download/BigBuckBunny_124/Content/big_buck_bunny_720p_surround.mp4"
-  poster="https://peach.blender.org/wp-content/uploads/title_anouncement.jpg?x11217"
-  width="620">
-Sorry, your browser doesn't support embedded videos.  Time to upgrade!
-</video>
-</textarea>
-
-    <div class="playable-buttons">
-        <input id="reset" type="button" value="Reset" />
-      </div>
-    </body>
-    <script src="playable.js"></script>
-  </body>
-</html>`
-    }
-    case 'css': {
-      return `html {
-	margin: 0;
-	background: black;
-	height: 100%;
-}
-
-body {
-	margin: 0;
-	width: 100%;
-	height: inherit;
-}
-
-/* the three main rows going down the page */
-
-body > div {
-  height: 25%;
-}
-
-.thumb {
-	float: left;
-	width: 25%;
-	height: 100%;
-	object-fit: cover;
-}
-
-.main {
-  display: none;
-}
-
-.blowup {
-  display: block;
-  position: absolute;
-  object-fit: contain;
-  object-position: center;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 2000;
-}
-
-.darken {
-  opacity: 0.4;
-}`
-    }
-
-    case 'sql': {
-      return `USE AdventureWorks2022;
-GO
-IF OBJECT_ID('dbo.NewProducts', 'U') IS NOT NULL
-    DROP TABLE dbo.NewProducts;
-GO
-ALTER DATABASE AdventureWorks2022 SET RECOVERY BULK_LOGGED;
-GO
-
-SELECT * INTO dbo.NewProducts
-FROM Production.Product
-WHERE ListPrice > $25
-AND ListPrice < $100;
-GO
-ALTER DATABASE AdventureWorks2022 SET RECOVERY FULL;
-GO`
-    }
-
-    case 'regexp': {
-      return `/^(revert: )?(feat|fix|docs|dx|style|refactor|perf|test|workflow|build|ci|chore|types|wip)(\(.+\))?: .{1,50}/`
-    }
-
-    case 'sh': {
-      return `#!/bin/sh
-# weather.sh
-# Copyright 2018 computer-geek64. All rights reserved.
-
-program=Weather
-version=1.1
-year=2018
-developer=computer-geek64
-
-case $1 in
--h | --help)
-	echo "$program $version"
-	echo "Copyright $year $developer. All rights reserved."
-	echo
-	echo "Usage: weather [options]"
-	echo "Option          Long Option             Description"
-	echo "-h              --help                  Show the help screen"
-	echo "-l [location]   --location [location]   Specifies the location"
-	;;
--l | --location)
-	curl https://wttr.in/$2
-	;;
-*)
-	curl https://wttr.in
-	;;
-esac`
-    }
-
-    case 'md': {
-      return `An h1 header
-============
-
-Paragraphs are separated by a blank line.
-
-2nd paragraph. *Italic*, **bold**, and \`monospace\`. Itemized lists
-look like:
-
-  * this one
-  * that one
-  * the other one
-
-Note that --- not considering the asterisk --- the actual text
-content starts at 4-columns in.
-
-> Block quotes are
-> written like so.
->
-> They can span multiple paragraphs,
-> if you like.
-
-Use 3 dashes for an em-dash. Use 2 dashes for ranges (ex., "it's all
-in chapters 12--14"). Three dots ... will be converted to an ellipsis.
-Unicode is supported. ☺
-
-
-
-An h2 header
-------------
-
-Here's a numbered list:
-
- 1. first item
- 2. second item
- 3. third item
-
-Note again how the actual text starts at 4 columns in (4 characters
-from the left side). Here's a code sample:
-
-    # Let me re-iterate ...
-    for i in 1 .. 10 { do-something(i) }
-
-As you probably guessed, indented 4 spaces. By the way, instead of
-indenting the block, you can use delimited blocks, if you like:
-
-~~~
-define foobar() {
-    print "Welcome to flavor country!";
-}
-~~~
-
-(which makes copying & pasting easier). You can optionally mark the
-delimited block for Pandoc to syntax highlight it:
-
-~~~python
-import time
-# Quick, count to ten!
-for i in range(10):
-    # (but not *too* quick)
-    time.sleep(0.5)
-    print(i)
-~~~
-
-
-
-### An h3 header ###
-
-Now a nested list:
-
- 1. First, get these ingredients:
-
-      * carrots
-      * celery
-      * lentils
-
- 2. Boil some water.
-
- 3. Dump everything in the pot and follow
-    this algorithm:
-
-        find wooden spoon
-        uncover pot
-        stir
-        cover pot
-        balance wooden spoon precariously on pot handle
-        wait 10 minutes
-        goto first step (or shut off burner when done)
-
-    Do not bump wooden spoon or it will fall.
-
-Notice again how text always lines up on 4-space indents (including
-that last line which continues item 3 above).
-
-Here's a link to [a website](http://foo.bar), to a [local
-doc](local-doc.html), and to a [section heading in the current
-doc](#an-h2-header). Here's a footnote [^1].
-
-[^1]: Some footnote text.
-
-Tables can look like this:
-
-Name           Size  Material      Color
-------------- -----  ------------  ------------
-All Business      9  leather       brown
-Roundabout       10  hemp canvas   natural
-Cinderella       11  glass         transparent
-
-Table: Shoes sizes, materials, and colors.
-
-(The above is the caption for the table.) Pandoc also supports
-multi-line tables:
-
---------  -----------------------
-Keyword   Text
---------  -----------------------
-red       Sunsets, apples, and
-          other red or reddish
-          things.
-
-green     Leaves, grass, frogs
-          and other things it's
-          not easy being.
---------  -----------------------
-
-A horizontal rule follows.
-
-***
-
-Here's a definition list:
-
-apples
-  : Good for making applesauce.
-
-oranges
-  : Citrus!
-
-tomatoes
-  : There's no "e" in tomatoe.
-
-Again, text is indented 4 spaces. (Put a blank line between each
-term and  its definition to spread things out more.)
-
-Here's a "line block" (note how whitespace is honored):
-
-| Line one
-|   Line too
-| Line tree
-
-and images can be specified like so:
-
-![example image](example-image.jpg "An exemplary image")
-
-Inline math equation: $\omega = d\phi / dt$. Display
-math should get its own line like so:
-
-$$I = \int \rho R^{2} dV$$
-
-And note that you can backslash-escape any punctuation characters
-which you wish to be displayed literally, ex.: \`foo\`, \*bar\*, etc.
-
-| Syntax | Description |
-| ----------- | ----------- |
-| Header | Title |
-| Paragraph | Text |
-
-- [x] Write the press release
-- [ ] Update the website
-- [ ] Contact the media`
-    }
-    case 'txt': {
-      return 'This is just some normal text, which is fine.'
-    }
-    default: {
-      return 'I don’t handle this fine extension in any particular way.'
-    }
-  }
-}
+import { getFileType } from '@/utils/get-file-type.ts'
+import {
+  type FileSystemItem,
+  type FSNode,
+  isFileSystemItem,
+} from '@/types/fs.ts'
+import { wait } from '@/utils/wait.ts'
 
 export class FinderStore extends BaseStore {
   ls: Signal<FSNode>
+  importStatus: Signal<{
+    inProgress: boolean
+    processed: number
+    total: number
+    errors: string[]
+  }>
+  importInProgress: ReadonlySignal<boolean>
 
   constructor() {
     super('finderStore')
@@ -451,11 +33,32 @@ export class FinderStore extends BaseStore {
       path: '',
     })
 
+    this.importStatus = signal({
+      inProgress: false,
+      processed: 0,
+      total: 0,
+      errors: [],
+    })
+
+    this.importInProgress = computed(() => {
+      return this.importStatus.value.total > this.importStatus.value.processed
+    })
+
+    effect(() => {
+      if (this.importInProgress.value) {
+        wait(100).then(() => this.refreshLs())
+        wait(500).then(() => this.refreshLs())
+        wait(1000).then(() => this.refreshLs())
+      }
+    })
+
     this.refreshLs = this.refreshLs.bind(this)
     this.create = this.create.bind(this)
     this.copy = this.copy.bind(this)
     this.delete = this.delete.bind(this)
     this.exists = this.exists.bind(this)
+    this.processEntry = this.processEntry.bind(this)
+    this.importFilesAndDirectories = this.importFilesAndDirectories.bind(this)
 
     this.refreshLs()
     this.logger.info('FinderStore initialized')
@@ -475,12 +78,11 @@ export class FinderStore extends BaseStore {
     }
   }
 
-  create(fsNode: FSNode): void {
+  create(fsNode: FSNode, fsItem: FileSystemItem): void {
     this.exists(fsNode).then((exists) => {
       if (!exists) {
         if (fsNode.kind === 'file') {
-          const data = getPlaceholderByExt(fsNode.name.split('.').pop())
-          fsHandlers.write(fsNode.path, data).then(() => this.refreshLs())
+          fsHandlers.write(fsNode.path, fsItem).then(() => this.refreshLs())
         } else {
           fsHandlers.createDirectory(fsNode.path).then(() => this.refreshLs())
         }
@@ -511,4 +113,284 @@ export class FinderStore extends BaseStore {
       setTimeout(() => this.refreshLs(), 100)
     })
   }
+
+  async processEntry(
+    fsItem: FileSystemItem,
+    basePath: string = '',
+  ): Promise<void> {
+    const path = basePath ? `${basePath}/${fsItem.name}` : fsItem.name
+
+    if (fsItem.isFile) {
+      this.importStatus.value = {
+        ...this.importStatus.value,
+        total: this.importStatus.value.total + 1,
+      }
+
+      try {
+        const exists = await fsHandlers.existsFile(path)
+
+        if (!exists) {
+          await fsHandlers.write(path, fsItem)
+        }
+
+        this.importStatus.value = {
+          ...this.importStatus.value,
+          processed: this.importStatus.value.processed + 1,
+        }
+      } catch (error) {
+        console.error(error)
+        this.importStatus.value = {
+          ...this.importStatus.value,
+          errors: [
+            ...this.importStatus.value.errors,
+            `Error processing file ${path}: ${error}`,
+          ],
+        }
+      }
+    } else if (fsItem.isDirectory) {
+      try {
+        const exists = await fsHandlers.existsDirectory(path)
+
+        if (!exists) {
+          await fsHandlers.createDirectory(path)
+        }
+
+        for await (const entry of fsItem.getEntries()) {
+          this.processEntry(entry, path)
+        }
+      } catch (error) {
+        this.importStatus.value = {
+          ...this.importStatus.value,
+          errors: [
+            ...this.importStatus.value.errors,
+            `Error processing directory ${path}: ${error}`,
+          ],
+        }
+      }
+    }
+  }
+
+  importFilesAndDirectories(dataTransfer: DataTransfer): void {
+    const supportsFileSystemAccessAPI = 'getAsFileSystemHandle' in
+      DataTransferItem.prototype
+    const supportsWebkitGetAsEntry = 'webkitGetAsEntry' in
+      DataTransferItem.prototype
+
+    if (!supportsFileSystemAccessAPI && !supportsWebkitGetAsEntry) {
+      console.error('Cannot handle drag and drop')
+      return
+    }
+
+    this.importStatus.value = {
+      inProgress: true,
+      processed: 0,
+      total: 0,
+      errors: [],
+    }
+
+    try {
+      // NOTE: if you use async code, the contents of dataTransfer becomes unusable!!!
+      for (const item of dataTransfer.items) {
+        getHandleOrEntry(item).then((handleOrEntry) => {
+          if (!handleOrEntry) {
+            console.error('blahhhh')
+            return
+          }
+
+          const fsItem = createFileSystemItem(handleOrEntry)
+
+          this.processEntry(fsItem)
+        })
+      }
+    } catch (error) {
+      console.error(error)
+      this.importStatus.value = {
+        ...this.importStatus.value,
+        errors: [...this.importStatus.value.errors, `Import error: ${error}`],
+      }
+    }
+  }
+}
+
+/**
+ * Adapts either a FileSystemHandle or FileSystemEntry to a standardized FileSystemItem
+ */
+function createFileSystemItem(
+  entry: FileSystemHandle | FileSystemEntry,
+): FileSystemItem {
+  // Handle FileSystemHandle (modern API)
+  if ('kind' in entry) {
+    return adaptFileSystemHandle(entry as FileSystemHandle)
+  } // Handle FileSystemEntry (legacy API)
+  else {
+    return adaptFileSystemEntry(entry as FileSystemEntry)
+  }
+}
+
+function adaptFileSystemHandle(handle: FileSystemHandle): FileSystemItem {
+  const isFile = handle.kind === 'file'
+  const isDirectory = handle.kind === 'directory'
+
+  return {
+    name: handle.name,
+    kind: handle.kind,
+    isFile,
+    isDirectory,
+    getFile: async () => {
+      if (!isFile) throw new Error('Not a file')
+      return await (handle as FileSystemFileHandle).getFile()
+    },
+    getEntries: async function* () {
+      if (!isDirectory) return
+
+      for await (
+        const entry of (handle as FileSystemDirectoryHandle).values()
+      ) {
+        if (!shouldIgnore(entry.name)) {
+          yield createFileSystemItem(entry)
+        }
+      }
+    },
+  }
+}
+
+function adaptFileSystemEntry(entry: FileSystemEntry): FileSystemItem {
+  const isFile = entry.isFile
+  const isDirectory = entry.isDirectory
+
+  return {
+    name: entry.name,
+    kind: isFile ? 'file' : 'directory',
+    isFile,
+    isDirectory,
+    getFile: () => {
+      return new Promise<File>((resolve, reject) => {
+        if (!isFile) {
+          reject(new Error('Not a file'))
+          return
+        }
+
+        ;(entry as FileSystemFileEntry).file(resolve, reject)
+      })
+    },
+    getEntries: async function* () {
+      if (!isDirectory) return
+
+      const dirReader = (entry as FileSystemDirectoryEntry).createReader()
+
+      // Helper function to read entries as a promise
+      const readEntriesBatch = (): Promise<FileSystemEntry[]> => {
+        return new Promise((resolve, reject) => {
+          dirReader.readEntries(resolve, reject)
+        })
+      }
+
+      // Keep reading batches until no more entries
+      let batch: FileSystemEntry[]
+      do {
+        batch = await readEntriesBatch()
+        for (const item of batch) {
+          if (!shouldIgnore(entry.name)) {
+            yield createFileSystemItem(item)
+          }
+        }
+      } while (batch.length > 0)
+    },
+  }
+}
+
+/**
+ * Counts all items (files and directories) in a directory handle
+ * Uses a non-recursive approach with a queue for better performance
+ */
+function countItems(fsItem: FileSystemItem) {
+  // Reset state
+  const count = signal(0)
+  const isInProgress = signal(true)
+  const error = signal<Error | null>(null)
+
+  const { promise, resolve, reject } = Promise.withResolvers<number>()
+
+  async function doCount() {
+    if (shouldIgnore(fsItem.name)) {
+      return
+    }
+
+    if (fsItem.isFile) {
+      count.value = 1
+      return
+    }
+
+    // Use a queue for breadth-first traversal to avoid recursion stack limits
+    const queue = [fsItem]
+    let cnt = 0
+
+    while (queue.length > 0) {
+      const current = queue.shift()
+      if (!current) {
+        continue
+      }
+      // Use for-await to process entries without loading all into memory at once
+      for await (const entry of current.getEntries()) {
+        if (shouldIgnore(entry.name)) {
+          continue
+        }
+
+        cnt++
+
+        // Update signal periodically (not on every item to reduce UI updates)
+        if (cnt % 100 === 0) {
+          count.value = cnt
+        }
+
+        // If directory, add to queue for processing
+        if (entry.isDirectory) {
+          queue.push(entry)
+        }
+      }
+    }
+
+    // Final update
+    count.value = cnt
+    resolve(cnt)
+  }
+
+  doCount()
+    .catch((e: Error) => {
+      error.value = e instanceof Error ? e : new Error(String(e))
+      reject()
+    })
+    .finally(() => isInProgress.value = false)
+
+  return { count, isInProgress, error, promise }
+}
+
+/**
+ * Gets a FileSystemHandle or FileSystemEntry from a DataTransferItem
+ * based on browser support.
+ */
+export async function getHandleOrEntry(
+  item: DataTransferItem,
+): Promise<FileSystemHandle | FileSystemEntry | null> {
+  // Try the modern File System Access API first
+  if ('getAsFileSystemHandle' in item) {
+    try {
+      return await (item as any).getAsFileSystemHandle()
+    } catch (error) {
+      console.error('Error getting FileSystemHandle:', error)
+    }
+  }
+
+  // Fall back to the older API
+  if ('webkitGetAsEntry' in item) {
+    return (item as any).webkitGetAsEntry()
+  }
+
+  return null
+}
+
+const ignoreList = ['.DS_Store']
+
+function shouldIgnore(filename: string) {
+  return ignoreList.includes(filename)
 }

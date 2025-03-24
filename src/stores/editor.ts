@@ -11,7 +11,7 @@ import { fsHandlers } from '@/broadcast/main.ts'
 let lastPath = ''
 let createMarkup: ((txt: string, arg: unknown) => Promise<string>) | undefined =
   undefined
-const v = '@3.1.0'
+const v = '@3.2.1'
 
 if (createMarkup === undefined) {
   const res = await import(`https://esm.run/shiki${v}`)
@@ -37,7 +37,7 @@ function getLangByFilePath(path?: string) {
       return 'css'
     }
     case 'txt': {
-      return 'typescript'
+      return 'text'
     }
     case 'json': {
       return 'json'
@@ -80,9 +80,10 @@ export class EditorStore extends BaseStore {
       async (path) => {
         if (typeof path === 'string') {
           const txt = await fsHandlers.read(path)
+          const lang = getLangByFilePath(path)
           const markup = createMarkup
             ? await createMarkup(txt, {
-              lang: getLangByFilePath(path),
+              lang,
               themes: { dark: 'min-dark', light: 'min-light' },
             })
             : ''
