@@ -78,11 +78,13 @@ export class FinderStore extends BaseStore {
     }
   }
 
-  create(fsNode: FSNode, fsItem: FileSystemItem): void {
+  create(fsNode: FSNode, fsItem?: FileSystemItem): void {
     this.exists(fsNode).then((exists) => {
       if (!exists) {
         if (fsNode.kind === 'file') {
-          fsHandlers.write(fsNode.path, fsItem).then(() => this.refreshLs())
+          fsHandlers.write(fsNode.path, fsItem || '').then(() =>
+            this.refreshLs()
+          )
         } else {
           fsHandlers.createDirectory(fsNode.path).then(() => this.refreshLs())
         }

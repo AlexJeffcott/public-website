@@ -5,6 +5,7 @@ import {
   CreateFileOrDirectory,
   DeleteFileOrDirectory,
   NavigateToHomeBtn,
+  RunTool,
   SetColorThemeInput,
 } from '@/actions-ui/mod.ts'
 import { cls, encodeStringForUrl } from '@/utils/mod.ts'
@@ -124,8 +125,11 @@ const FileTree: FunctionComponent<{ fsNode: FSNode }> = ({ fsNode }) => {
               : <DirectoryLink fsNode={fsNode} />}
             <Btn class={classes.btn} popovertarget={fsNode.path}>…</Btn>
             <div id={fsNode.path} popover='auto'>
-              {fsNode.kind === 'directory' &&
-                <CreateFileOrDirectory fsNode={fsNode} />}
+              {fsNode.kind === 'directory' && (
+                <CreateFileOrDirectory fsNode={fsNode} />
+              )}
+              {fsNode.name.endsWith('.tool') &&
+                <RunTool fsNode={fsNode} />}
               <CopyFileOrDirectory fsNode={fsNode} />
               <DeleteFileOrDirectory fsNode={fsNode} />
             </div>
@@ -212,14 +216,14 @@ const WYSIWYG: FunctionComponent<
       displayDiv.scrollTop = textarea.scrollTop
       displayDiv.scrollLeft = textarea.scrollLeft
     }
-    console.log('mount')
+
     textarea.addEventListener('scroll', handleScroll)
 
     return () => {
       textarea.removeEventListener('scroll', handleScroll)
     }
   })
-  console.log('render')
+
   return (
     <>
       {markupSig && (
@@ -227,7 +231,7 @@ const WYSIWYG: FunctionComponent<
           ref={displayDivRef}
           class={cls(classes.fileContentMarkup, className)}
           dangerouslySetInnerHTML={{
-            __html: isLoading ? 'loading' : markupSig.value,
+            __html: !markupSig.value && isLoading ? 'loading' : markupSig.value,
           }}
         >
         </span>
@@ -243,94 +247,20 @@ const WYSIWYG: FunctionComponent<
         autocapitalize='off'
         spellcheck={false}
         onInput={onInputCB}
-        value={contentSig}
       >
+        {contentSig}
       </textarea>
     </>
   )
 }
 
-//import { render } from 'preact';
-//import { useSignal, useSignalEffect } from '@preact/signals';
-//import { useCallback } from 'preact/hooks';
-//
-//function AudioPlayer() {
-//  const audioSrc = useSignal<string | null>(null);
-//  const isPlaying = useSignal(false);
-//  const audioRef = useSignal<HTMLAudioElement | null>(null);
-//
-//  // Clean up object URL when component unmounts or src changes
-//  useSignalEffect(() => {
-//    return () => {
-//      if (audioSrc.value) {
-//        URL.revokeObjectURL(audioSrc.value);
-//      }
-//    };
-//  });
-//
-//  const playAudioFromOPFS = useCallback(async (fileName: string) => {
-//    try {
-//      // Get OPFS root directory
-//      const root = await navigator.storage.getDirectory();
-//
-//      // Get file handle and file
-//      const fileHandle = await root.getFileHandle(fileName);
-//      const file = await fileHandle.getFile();
-//
-//      // Create object URL and set it as audio source
-//      const objectURL = URL.createObjectURL(file);
-//      audioSrc.value = objectURL;
-//
-//      // Play the audio
-//      if (audioRef.value) {
-//        await audioRef.value.play();
-//        isPlaying.value = true;
-//      }
-//    } catch (error) {
-//      console.error('Error playing audio from OPFS:', error);
-//    }
-//  }, []);
-//
-//  const togglePlayPause = useCallback(() => {
-//    if (audioRef.value) {
-//      if (isPlaying.value) {
-//        audioRef.value.pause();
-//      } else {
-//        audioRef.value.play();
-//      }
-//      isPlaying.value = !isPlaying.value;
-//    }
-//  }, []);
-//
-//  return (
-//    <div>
-//      <audio
-//        ref={(el) => { audioRef.value = el; }}
-//        src={audioSrc.value || undefined}
-//        onEnded={() => { isPlaying.value = false; }}
-//      />
-//
-//      <button onClick={() => playAudioFromOPFS('my-audio.mp3')}>
-//        Load and Play from OPFS
-//      </button>
-//
-//      {audioSrc.value && (
-//        <button onClick={togglePlayPause}>
-//          {isPlaying.value ? 'Pause' : 'Play'}
-//        </button>
-//      )}
-//    </div>
-//  );
-//}
-//
-//
 const MediaItem: FunctionComponent<{ path: string; src: string }> = (
   { path, src },
 ) => {
   const containerRef = useRef<HTMLDivElement>(null)
 
   const handleLoad = () => {
-    console.log('loaded')
+    console.info('loaded')
   }
 
   const renderMedia = () => {
@@ -349,19 +279,6 @@ const MediaItem: FunctionComponent<{ path: string; src: string }> = (
         return null
     }
   }
-
-  return (
-    <div
-      ref={containerRef}
-      class={classes.responsiveMediaContainer}
-    >
-      {renderMedia()}
-    </div>
-  )
-}
-
-const Tools: FunctionComponent = () => {
-  const containerRef = useRef<HTMLDivElement>(null)
 
   return (
     <div

@@ -19,13 +19,21 @@ export function promptForPath(
     return promptForPath(`Please enter a valid path like "${prefill}"`, '')
   }
 
-  const name = path?.split('/').pop()
+  const { name, kind } = createFSNodeFromPath(path)
 
   if (!name) {
     return promptForPath(`Please enter a valid path like "${prefill}"`, path)
   }
 
-  const kind = isFilePath(name) ? 'file' as const : 'directory' as const
-
   return { name, path, kind }
+}
+
+export function createFSNodeFromPath(path: string) {
+  const name = path?.split('/').pop()
+  if (name) {
+    const kind = isFilePath(name) ? 'file' as const : 'directory' as const
+    return { name, kind }
+  }
+
+  return {}
 }

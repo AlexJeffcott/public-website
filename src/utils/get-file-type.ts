@@ -62,7 +62,8 @@ const textExtensions = [
   '.diff',
   '.patch',
   '.bat',
-  '.txt',
+  '.tool',
+  '.output',
 ]
 
 /**
@@ -176,4 +177,3 @@ export function isImageFile(filename: string): boolean {
   const extension = filename.toLowerCase().match(/\.[^.]*$/)?.[0]
   return extension !== undefined && imageExtensions.includes(extension)
 }
-
