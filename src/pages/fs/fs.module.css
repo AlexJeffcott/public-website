@@ -147,7 +147,7 @@ button.btn {
 }
 
 .fileContentTextArea {
-  color: transparent;
+  color: light-dark(black, white);
   tab-size: 4;
   caret-color: light-dark(black, white);
   font-family:

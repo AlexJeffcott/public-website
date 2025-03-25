@@ -1,0 +1,5 @@
+export { type FunctionComponent, type JSX } from 'preact'
+export { type ReadonlySignal, type Signal } from '@preact/signals'
+export * from '@/types/is-object.ts'
+export * from '@/types/fs.ts'
+export * from '@/types/is-object.ts'

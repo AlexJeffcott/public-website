@@ -1,4 +1,4 @@
-import { Fragment, type FunctionalComponent } from 'preact'
+import { Fragment } from 'preact'
 import classes from '@/pages/fs/fs.module.css'
 import {
   CopyFileOrDirectory,
@@ -8,13 +8,23 @@ import {
   SetColorThemeInput,
 } from '@/actions-ui/mod.ts'
 import { cls, encodeStringForUrl } from '@/utils/mod.ts'
-import { onMount, useRef, useSignalEffect } from '@/hooks/mod.ts'
+import {
+  onMount,
+  useRef,
+  useSignalEffect,
+  useStableCallback,
+} from '@/hooks/mod.ts'
 import { useStores } from '@/contexts/stores.tsx'
-import { type FSNode } from '@/types/fs.ts'
+import {
+  type FSNode,
+  type FunctionComponent,
+  type JSX,
+  type ReadonlySignal,
+} from '@/types/mod.ts'
 import { Btn } from '@/ui-components/mod.ts'
 import { getFileType } from '@/utils/get-file-type.ts'
 
-export const FSPage: FunctionalComponent = () => {
+export const FSPage: FunctionComponent = () => {
   const { finderStore, routerStore, editorStore } = useStores()
 
   const handleDrop = (e: DragEvent) => {
@@ -32,6 +42,12 @@ export const FSPage: FunctionalComponent = () => {
     // NOTE: when the hash changes, update the filePath
     editorStore.setFilePath(routerStore.decodedHash.value)
   })
+
+  const inputCB = useStableCallback(
+    (e: JSX.TargetedInputEvent<HTMLTextAreaElement>) => {
+      editorStore.update(e.currentTarget.value)
+    },
+  )
 
   return (
     <main
@@ -66,9 +82,15 @@ export const FSPage: FunctionalComponent = () => {
                 src={editorStore.text.value}
               />
             )
-            : editorStore.current.status.value === 'loading'
-            ? <p>loading</p>
-            : <WYSIWYG />
+            : (
+              <WYSIWYG
+                isLoading={editorStore.current.status.value === 'loading'}
+                isDisabled={!routerStore.decodedHash.value}
+                onInputCB={inputCB}
+                contentSig={editorStore.text}
+                markupSig={editorStore.markup}
+              />
+            )
           : (
             <h1 class={classes.center}>
               {finderStore.ls.value?.children?.length
@@ -84,7 +106,7 @@ export const FSPage: FunctionalComponent = () => {
   )
 }
 
-const FileTree = ({ fsNode }: { fsNode: FSNode }) => {
+const FileTree: FunctionComponent<{ fsNode: FSNode }> = ({ fsNode }) => {
   const { routerStore } = useStores()
   const hash = `#${encodeStringForUrl(fsNode.path)}`
   return (
@@ -118,7 +140,7 @@ const FileTree = ({ fsNode }: { fsNode: FSNode }) => {
   )
 }
 
-const FileLink: FunctionalComponent<{ fsNode: FSNode }> = (
+const FileLink: FunctionComponent<{ fsNode: FSNode }> = (
   { fsNode },
 ) => {
   const hash = `#${encodeStringForUrl(fsNode.path)}`
@@ -139,7 +161,7 @@ const FileLink: FunctionalComponent<{ fsNode: FSNode }> = (
   )
 }
 
-const DirectoryLink: FunctionalComponent<{ fsNode: FSNode }> = (
+const DirectoryLink: FunctionComponent<{ fsNode: FSNode }> = (
   { fsNode },
 ) => {
   const nesting = Math.max(fsNode.path.split('/').length - 1, 0)
@@ -158,8 +180,25 @@ const DirectoryLink: FunctionalComponent<{ fsNode: FSNode }> = (
   )
 }
 
-const WYSIWYG: FunctionalComponent = () => {
-  const { editorStore, routerStore } = useStores()
+const WYSIWYG: FunctionComponent<
+  {
+    class?: string
+    isDisabled?: boolean
+    isLoading: boolean
+    onInputCB: (e: JSX.TargetedInputEvent<HTMLTextAreaElement>) => void
+    markupSig?: ReadonlySignal<string>
+    contentSig: ReadonlySignal<string>
+  }
+> = (
+  {
+    class: className,
+    isDisabled = false,
+    isLoading = true,
+    onInputCB,
+    markupSig,
+    contentSig,
+  },
+) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const displayDivRef = useRef<HTMLDivElement>(null)
 
@@ -173,35 +212,38 @@ const WYSIWYG: FunctionalComponent = () => {
       displayDiv.scrollTop = textarea.scrollTop
       displayDiv.scrollLeft = textarea.scrollLeft
     }
-
+    console.log('mount')
     textarea.addEventListener('scroll', handleScroll)
 
     return () => {
       textarea.removeEventListener('scroll', handleScroll)
     }
   })
-
+  console.log('render')
   return (
     <>
-      <span
-        ref={displayDivRef}
-        class={classes.fileContentMarkup}
-        dangerouslySetInnerHTML={{ __html: editorStore.markup.value }}
-      >
-      </span>
+      {markupSig && (
+        <span
+          ref={displayDivRef}
+          class={cls(classes.fileContentMarkup, className)}
+          dangerouslySetInnerHTML={{
+            __html: isLoading ? 'loading' : markupSig.value,
+          }}
+        >
+        </span>
+      )}
 
       <textarea
         ref={textareaRef}
-        disabled={!routerStore.decodedHash.value}
-        class={classes.fileContentTextArea}
+        disabled={isDisabled}
+        class={cls(classes.fileContentTextArea, className)}
+        style={markupSig ? 'color: transparent;' : ''}
         autocomplete='off'
         autocorrect='off'
         autocapitalize='off'
         spellcheck={false}
-        onInput={(e) => {
-          editorStore.update(e.currentTarget.value)
-        }}
-        value={editorStore.text.value}
+        onInput={onInputCB}
+        value={contentSig}
       >
       </textarea>
     </>
@@ -282,7 +324,9 @@ const WYSIWYG: FunctionalComponent = () => {
 //}
 //
 //
-const MediaItem = ({ path, src }: { path: string; src: string }) => {
+const MediaItem: FunctionComponent<{ path: string; src: string }> = (
+  { path, src },
+) => {
   const containerRef = useRef<HTMLDivElement>(null)
 
   const handleLoad = () => {
@@ -305,6 +349,19 @@ const MediaItem = ({ path, src }: { path: string; src: string }) => {
         return null
     }
   }
+
+  return (
+    <div
+      ref={containerRef}
+      class={classes.responsiveMediaContainer}
+    >
+      {renderMedia()}
+    </div>
+  )
+}
+
+const Tools: FunctionComponent = () => {
+  const containerRef = useRef<HTMLDivElement>(null)
 
   return (
     <div
