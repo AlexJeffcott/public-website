@@ -53,11 +53,13 @@ ctx.onconnect = (e: MessageEvent) => {
 }
 
 const hash = new Map<string, string>()
-
-let fileChunks: Uint8Array[] = []
-let fileMetadata:
-  | { name: string; size: number; type: string; path: string }
-  | null = null
+const fileChunkHash = new Map<
+  string,
+  {
+    metadata: { name: string; size: number; type: string; path: string }
+    chunks: Uint8Array[]
+  }
+>()
 
 hub.on('REQUEST', (message) => {
   // skip messages not aimed at this worker
@@ -80,20 +82,29 @@ hub.on('REQUEST', (message) => {
   } else if (isMediaFileInit(payload)) {
     // TODO: check to see whether we can have concurrancy issues here
     // if so we need to use a map
-    fileMetadata = {
-      name: payload.name,
-      path: payload.path,
-      size: payload.size,
-      type: payload.type,
-    }
-    fileChunks = []
+    fileChunkHash.set(payload.path, {
+      metadata: {
+        name: payload.name,
+        path: payload.path,
+        size: payload.size,
+        type: payload.type,
+      },
+      chunks: [],
+    })
+
     hub.respond(message, undefined)
   } else if (isMediaFileAddChunk(payload)) {
-    fileChunks.push(new Uint8Array(payload.data))
-    hub.respond(message, undefined)
+    const item = fileChunkHash.get(payload.path)
+    if (item) {
+      item.chunks.push(new Uint8Array(payload.data))
+      hub.respond(message, undefined)
+    }
   } else if (isMediaFileComplete(payload)) {
-    processFile(fileMetadata, fileChunks)
-    hub.respond(message, undefined)
+    const item = fileChunkHash.get(payload.path)
+    if (item) {
+      processFile(item.metadata, item.chunks)
+      hub.respond(message, undefined)
+    }
   } else if (isRead(payload)) {
     fs.read(payload.path)
       .then(async (file) => {
