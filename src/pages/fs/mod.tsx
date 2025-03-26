@@ -8,7 +8,7 @@ import {
   RunTool,
   SetColorThemeInput,
 } from '@/actions-ui/mod.ts'
-import { cls, encodeStringForUrl } from '@/utils/mod.ts'
+import { cls, encodeStringForUrl, getFileType } from '@/utils/mod.ts'
 import {
   onMount,
   useRef,
@@ -23,7 +23,6 @@ import {
   type ReadonlySignal,
 } from '@/types/mod.ts'
 import { Btn } from '@/ui-components/mod.ts'
-import { getFileType } from '@/utils/get-file-type.ts'
 
 export const FSPage: FunctionComponent = () => {
   const { finderStore, routerStore, editorStore } = useStores()
@@ -58,6 +57,10 @@ export const FSPage: FunctionComponent = () => {
     >
       <header class={classes.header}>
         <NavigateToHomeBtn />
+        <RunTool
+          fsNodeSig={editorStore.currentFSNode}
+          disabled={!editorStore.text.value.startsWith('#! ')}
+        />
         <SetColorThemeInput />
       </header>
       <aside class={classes.fileTreeSection}>
@@ -128,8 +131,6 @@ const FileTree: FunctionComponent<{ fsNode: FSNode }> = ({ fsNode }) => {
               {fsNode.kind === 'directory' && (
                 <CreateFileOrDirectory fsNode={fsNode} />
               )}
-              {fsNode.name.endsWith('.tool') &&
-                <RunTool fsNode={fsNode} />}
               <CopyFileOrDirectory fsNode={fsNode} />
               <DeleteFileOrDirectory fsNode={fsNode} />
             </div>

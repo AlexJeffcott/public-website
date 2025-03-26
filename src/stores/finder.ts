@@ -7,12 +7,7 @@ import {
 } from '@preact/signals'
 import { BaseStore } from '@/stores/base.ts'
 import { fsHandlers } from '@/broadcast/main.ts'
-import { getFileType } from '@/utils/get-file-type.ts'
-import {
-  type FileSystemItem,
-  type FSNode,
-  isFileSystemItem,
-} from '@/types/fs.ts'
+import { type FileSystemItem, type FSNode } from '@/types/fs.ts'
 import { wait } from '@/utils/wait.ts'
 
 export class FinderStore extends BaseStore {
@@ -82,11 +77,15 @@ export class FinderStore extends BaseStore {
     this.exists(fsNode).then((exists) => {
       if (!exists) {
         if (fsNode.kind === 'file') {
-          fsHandlers.write(fsNode.path, fsItem || '').then(() =>
+          fsHandlers.write(fsNode.path, fsItem || '').then(async () => {
+            await wait(100)
             this.refreshLs()
-          )
+          })
         } else {
-          fsHandlers.createDirectory(fsNode.path).then(() => this.refreshLs())
+          fsHandlers.createDirectory(fsNode.path).then(async () => {
+            await wait(100)
+            this.refreshLs()
+          })
         }
       } else {
         // TODO: handle this error in some nice way

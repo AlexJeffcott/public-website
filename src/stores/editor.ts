@@ -1,12 +1,9 @@
-import {
-  computed,
-  type ReadonlySignal,
-  type Signal,
-  signal,
-} from '@preact/signals'
+import { computed, signal } from '@preact/signals'
 import { type AsyncSignal, asyncSignal } from '@/utils/async-signal.ts'
 import { BaseStore } from '@/stores/base.ts'
 import { fsHandlers } from '@/broadcast/main.ts'
+import { type FSNode, type ReadonlySignal, type Signal } from '@/types/mod.ts'
+import { createFSNodeFromPath } from '@/utils/mod.ts'
 
 let lastPath = ''
 let createMarkup: ((txt: string, arg: unknown) => Promise<string>) | undefined =
@@ -65,6 +62,7 @@ function getLangByFilePath(path?: string) {
 
 export class EditorStore extends BaseStore {
   currentFilePath: Signal<string>
+  currentFSNode: ReadonlySignal<FSNode | undefined>
   text: ReadonlySignal<string>
   markup: ReadonlySignal<string>
   current: AsyncSignal<[string, string] | undefined>
@@ -104,6 +102,10 @@ export class EditorStore extends BaseStore {
       return Array.isArray(this.current?.state?.value)
         ? this.current.state.value[1]
         : ''
+    })
+
+    this.currentFSNode = computed(() => {
+      return createFSNodeFromPath(this.currentFilePath.value)
     })
 
     this.logger.info('editorStore initialised')

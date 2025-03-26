@@ -74,6 +74,7 @@ function handleTouchEvent(
 type BtnProps = {
   ariaLabel?: string
   class?: string
+  disabled?: boolean
   forwardRef?: RefObject<HTMLButtonElement>
   onPress?: () => void
   onLongPress?: () => void
@@ -86,6 +87,7 @@ export const Btn: FunctionalComponent<BtnProps> = ({
   ariaLabel,
   title,
   children,
+  disabled = false,
   class: className,
   forwardRef,
   onPress,
@@ -102,6 +104,7 @@ export const Btn: FunctionalComponent<BtnProps> = ({
       tabIndex={0}
       title={title || ariaLabel}
       aria-label={ariaLabel}
+      disabled={disabled}
       {...rest}
     >
       {children}

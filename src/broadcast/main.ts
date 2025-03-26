@@ -199,7 +199,7 @@ const fsHandlers = {
 export { areAllConnected, fsHandlers, messages }
 
 async function sendToLLM(path: string) {
-  const inputStr = await fsHandlers.read(path.replace('.output', '.tool'))
+  const inputStr = await fsHandlers.read(path.replace('.output', ''))
 
   const { model, persona } = parseHashBang(inputStr)
 
@@ -229,6 +229,7 @@ Key principles:
 - Don't use Tailwind or css utilities
 - Only use specified techs
 - Focus on modern web standards and best practices
+- Don't output html answers, unless asked
 - If more information is needed, you ask.`,
   fullstack:
     `You are an expert full stack developer who is expert in PHP, Golang and Typescript.
