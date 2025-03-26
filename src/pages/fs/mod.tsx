@@ -23,6 +23,7 @@ import {
   type ReadonlySignal,
 } from '@/types/mod.ts'
 import { Btn } from '@/ui-components/mod.ts'
+import { CredsPopover } from '@/pages/fs/creds-popover.tsx'
 
 export const FSPage: FunctionComponent = () => {
   const { finderStore, routerStore, editorStore } = useStores()
@@ -57,10 +58,18 @@ export const FSPage: FunctionComponent = () => {
     >
       <header class={classes.header}>
         <NavigateToHomeBtn />
-        <RunTool
-          fsNodeSig={editorStore.currentFSNode}
-          disabled={!editorStore.text.value.startsWith('#! ')}
-        />
+        {editorStore.text.value.startsWith('#! ')
+          ? (
+            <RunTool
+              fsNodeSig={editorStore.currentFSNode}
+            />
+          )
+          : <div></div>}
+        <>
+          <Btn popovertarget='manage-credentials'>manage credentials</Btn>
+          <CredsPopover />
+        </>
+
         <SetColorThemeInput />
       </header>
       <aside class={classes.fileTreeSection}>

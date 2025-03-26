@@ -15,7 +15,7 @@
   grid-area: header;
   display: grid;
   grid-template-rows: 100%;
-  grid-template-columns: 1fr min-content min-content;
+  grid-template-columns: 1fr min-content min-content min-content;
   align-items: center;
   justify-content: end;
   gap: 8px;
