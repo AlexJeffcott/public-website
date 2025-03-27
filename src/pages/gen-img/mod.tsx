@@ -1,14 +1,14 @@
-import { type FunctionalComponent } from 'preact'
 import classes from '@/pages/gen-img/gen-img.module.css'
 import { cls } from '@/utils/mod.ts'
-import { isObject } from '@/types/is-object.ts'
+import { type FunctionComponent, isObject } from '@/types/mod.ts'
 import { useSignal } from '@preact/signals'
 import { PrimitivePersistence } from '@/persistence/mod.ts'
 import { NavigateToHomeBtn, SetColorThemeInput } from '@/actions-ui/mod.ts'
+import { Btn, WYSIWYG } from '@/ui-components/mod.ts'
 
 const openAIKey = new PrimitivePersistence('openaiApiKey', '')
 
-const GenImage: FunctionalComponent = () => {
+const GenImage: FunctionComponent = () => {
   const imageResult = useSignal('')
   const error = useSignal('')
   const isLoading = useSignal(false)
@@ -75,7 +75,7 @@ const GenImage: FunctionalComponent = () => {
           new FormData(e.currentTarget)
         }}
       >
-        <select name='size'>
+        <select name='size' class={classes.size}>
           <option value='1024x1024' selected>
             1024x1024
           </option>
@@ -87,14 +87,14 @@ const GenImage: FunctionalComponent = () => {
           </option>
         </select>
 
-        <select name='style'>
+        <select name='style' class={classes.style}>
           <option value='vivid' selected>
             vivid
           </option>
           <option value='natural'>natural</option>
         </select>
 
-        <label>
+        <label class={classes.quality}>
           <input
             type='checkbox'
             name='quality'
@@ -103,8 +103,9 @@ const GenImage: FunctionalComponent = () => {
           </input>
           HD
         </label>
-
-        <textarea name='prompt'></textarea>
+        <div class={classes.prompt}>
+          <WYSIWYG name='prompt' />
+        </div>
         <input
           type='hidden'
           name='model'
@@ -118,12 +119,13 @@ const GenImage: FunctionalComponent = () => {
         >
         </input>
 
-        <button
+        <Btn
+          class={classes.submitBtn}
           type='submit'
           disabled={isLoading.value}
         >
           {isLoading.value ? 'Generating image...' : 'Generate Image'}
-        </button>
+        </Btn>
       </form>
 
       {error.value && <div class='error'>{error.value}</div>}
@@ -139,28 +141,16 @@ const GenImage: FunctionalComponent = () => {
   )
 }
 
-export const GenImgPage: FunctionalComponent = () => {
+export const GenImgPage: FunctionComponent = () => {
   return (
     <article class={classes.page}>
       <header class={classes.header}>
         <NavigateToHomeBtn />
         <SetColorThemeInput />
       </header>
-      <h1>Generate an Image with Dall-e-3</h1>
       <main class={classes.content}>
         <GenImage />
       </main>
-      <footer class={classes.footer}>Alex Jeffcott</footer>
     </article>
   )
 }
-
-//400
-//{
-//  "error": {
-//    "code": "content_policy_violation",
-//    "message": "Your request was rejected as a result of our safety system. Your prompt may contain text that is not allowed by our safety system.",
-//    "param": null,
-//    "type": "invalid_request_error"
-//  }
-//}

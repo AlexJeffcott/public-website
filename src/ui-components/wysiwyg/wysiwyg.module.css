@@ -1,0 +1,44 @@
+.fileContentTextArea {
+  color: light-dark(black, white);
+  tab-size: 4;
+  caret-color: light-dark(black, white);
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    Liberation Mono,
+    Courier New,
+    monospace;
+  padding: 16px;
+  background-color: transparent;
+  white-space: pre-wrap;
+  overflow: auto;
+  resize: none;
+  inset: 0;
+  position: absolute;
+  z-index: 10;
+  touch-action: manipulation;
+  border: none;
+  width: 100%;
+  height: 100%;
+  outline: none;
+  text-wrap: auto;
+    word-break: break-all;
+}
+
+.fileContentMarkup {
+  padding: 0px;
+  white-space: pre;
+  overflow: hidden;
+  inset: 0 16px;
+  position: absolute;
+  border: none;
+  outline: none;
+  text-wrap: auto;
+    word-break: break-all;
+  & pre {
+    white-space: pre-wrap;
+  }
+}

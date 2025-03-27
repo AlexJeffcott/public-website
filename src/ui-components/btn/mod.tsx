@@ -79,6 +79,7 @@ type BtnProps = {
   onPress?: () => void
   onLongPress?: () => void
   title?: string
+  type?: 'button' | 'submit' | 'reset'
   children: preact.ComponentChildren
   popovertarget?: string
 }
@@ -87,6 +88,7 @@ export const Btn: FunctionalComponent<BtnProps> = ({
   ariaLabel,
   title,
   children,
+  type = 'button',
   disabled = false,
   class: className,
   forwardRef,
@@ -105,6 +107,7 @@ export const Btn: FunctionalComponent<BtnProps> = ({
       title={title || ariaLabel}
       aria-label={ariaLabel}
       disabled={disabled}
+      type={type}
       {...rest}
     >
       {children}

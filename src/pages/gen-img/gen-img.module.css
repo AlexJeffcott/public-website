@@ -20,7 +20,7 @@
 .content {
   display: grid;
   gap: 16px;
-  grid-template-columns: min(100%, 500px);
+  grid-template-columns: min(100%, 800px);
   align-items: start;
   justify-items: center;
   justify-content: center;
@@ -39,27 +39,32 @@
   align-items: center;
 }
 
-.aiForm.genImg select[name='size'] {
+.size {
   grid-area: size;
 }
 
-.aiForm.genImg select[name='style'] {
+.style {
   grid-area: style;
 }
 
-.aiForm.genImg label::has(input[name=quality]) {
+.quality {
   grid-area: quality;
 }
 
-.aiForm.genImg label input[name='quality'] {
+.quality input {
   margin-right: 8px;
 }
 
-.aiForm.genImg textarea[name='prompt'] {
+.prompt {
   grid-area: prompt;
+  position: relative;
+  height: 200px;
+      border: 1px solid var(--txt-primary);
+    border-radius: 4px;
+    background-color: light-dark(#ffffff, #1f1f1f);
 }
 
-.aiForm.genImg button[type='submit'] {
+.submitBtn {
   grid-area: btn;
 }
 
@@ -73,4 +78,3 @@
   max-width: 500px;
 }
 
-.footer {}

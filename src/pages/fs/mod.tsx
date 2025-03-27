@@ -9,20 +9,10 @@ import {
   SetColorThemeInput,
 } from '@/actions-ui/mod.ts'
 import { cls, encodeStringForUrl, getFileType } from '@/utils/mod.ts'
-import {
-  onMount,
-  useRef,
-  useSignalEffect,
-  useStableCallback,
-} from '@/hooks/mod.ts'
+import { useRef, useSignalEffect, useStableCallback } from '@/hooks/mod.ts'
 import { useStores } from '@/contexts/stores.tsx'
-import {
-  type FSNode,
-  type FunctionComponent,
-  type JSX,
-  type ReadonlySignal,
-} from '@/types/mod.ts'
-import { Btn } from '@/ui-components/mod.ts'
+import { type FSNode, type FunctionComponent, type JSX } from '@/types/mod.ts'
+import { Btn, WYSIWYG } from '@/ui-components/mod.ts'
 import { IntegrationsPopover } from '@/pages/fs/integrations-popover.tsx'
 
 export const FSPage: FunctionComponent = () => {
@@ -191,76 +181,6 @@ const DirectoryLink: FunctionComponent<{ fsNode: FSNode }> = (
       )}
       {fsNode.name}
     </span>
-  )
-}
-
-const WYSIWYG: FunctionComponent<
-  {
-    class?: string
-    isDisabled?: boolean
-    isLoading: boolean
-    onInputCB: (e: JSX.TargetedInputEvent<HTMLTextAreaElement>) => void
-    markupSig?: ReadonlySignal<string>
-    contentSig: ReadonlySignal<string>
-  }
-> = (
-  {
-    class: className,
-    isDisabled = false,
-    isLoading = true,
-    onInputCB,
-    markupSig,
-    contentSig,
-  },
-) => {
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const displayDivRef = useRef<HTMLDivElement>(null)
-
-  onMount(() => {
-    const textarea = textareaRef.current
-    const displayDiv = displayDivRef.current
-
-    if (!textarea || !displayDiv) return
-
-    const handleScroll = () => {
-      displayDiv.scrollTop = textarea.scrollTop
-      displayDiv.scrollLeft = textarea.scrollLeft
-    }
-
-    textarea.addEventListener('scroll', handleScroll)
-
-    return () => {
-      textarea.removeEventListener('scroll', handleScroll)
-    }
-  })
-
-  return (
-    <>
-      {markupSig && (
-        <span
-          ref={displayDivRef}
-          class={cls(classes.fileContentMarkup, className)}
-          dangerouslySetInnerHTML={{
-            __html: !markupSig.value && isLoading ? 'loading' : markupSig.value,
-          }}
-        >
-        </span>
-      )}
-
-      <textarea
-        ref={textareaRef}
-        disabled={isDisabled}
-        class={cls(classes.fileContentTextArea, className)}
-        style={markupSig ? 'color: transparent;' : ''}
-        autocomplete='off'
-        autocorrect='off'
-        autocapitalize='off'
-        spellcheck={false}
-        onInput={onInputCB}
-      >
-        {contentSig}
-      </textarea>
-    </>
   )
 }
 
