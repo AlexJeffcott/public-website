@@ -118,8 +118,6 @@ export const GitHubIntegration = () => {
 
   return (
     <div class={classes.githubIntegration}>
-      <h3>GitHub Integration</h3>
-
       <div class={classes.githubConfig}>
         <div class={classes.formGroup}>
           <label>Owner/Organization:</label>

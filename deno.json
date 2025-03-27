@@ -30,7 +30,7 @@
     "@/global.css": "./src/types/css.d.ts",
     "@/pages/code/code.module.css": "./src/types/css.module.d.ts",
     "@/actions-ui/set-color-theme-input/color-picker.module.css": "./src/types/css.module.d.ts",
-    "@/pages/fs/creds-popover.module.css": "./src/types/css.module.d.ts",
+    "@/pages/fs/integrations-popover.module.css": "./src/types/css.module.d.ts",
     "@/pages/fs/github-integration.module.css": "./src/types/css.module.d.ts",
     "@/pages/gen-img/gen-img.module.css": "./src/types/css.module.d.ts",
     "@/pages/fs/fs.module.css": "./src/types/css.module.d.ts",
