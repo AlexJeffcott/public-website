@@ -9,6 +9,8 @@ import { BaseStore } from '@/stores/base.ts'
 import { fsHandlers } from '@/broadcast/main.ts'
 import { type FileSystemItem, type FSNode } from '@/types/fs.ts'
 import { wait } from '@/utils/wait.ts'
+import readme from '@/stores/README.ts'
+import { createFSNodeFromPath } from '@/utils/mod.ts'
 
 export class FinderStore extends BaseStore {
   ls: Signal<FSNode>
@@ -56,6 +58,15 @@ export class FinderStore extends BaseStore {
     this.importFilesAndDirectories = this.importFilesAndDirectories.bind(this)
 
     this.refreshLs()
+
+    fsHandlers.existsFile('README.md').then((exists) => {
+      if (!exists) {
+        fsHandlers.write('README.md', readme).then(() => {
+          this.refreshLs()
+        })
+      }
+    })
+
     this.logger.info('FinderStore initialized')
   }
 
