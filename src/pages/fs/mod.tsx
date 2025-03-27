@@ -24,6 +24,7 @@ import {
 } from '@/types/mod.ts'
 import { Btn } from '@/ui-components/mod.ts'
 import { CredsPopover } from '@/pages/fs/creds-popover.tsx'
+import { GitHubIntegration } from '@/pages/fs/github-integration.tsx'
 
 export const FSPage: FunctionComponent = () => {
   const { finderStore, routerStore, editorStore } = useStores()
@@ -75,6 +76,7 @@ export const FSPage: FunctionComponent = () => {
       <aside class={classes.fileTreeSection}>
         {!finderStore.ls.value?.children?.length && <CreateFileOrDirectory />}
         <FileTree fsNode={finderStore.ls.value} />
+        <GitHubIntegration />
         {finderStore.importStatus.value.errors.length > 0 && (
           <div>
             <h3>Errors:</h3>

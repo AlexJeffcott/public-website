@@ -163,7 +163,7 @@ function processFile(
       fs.write(metadata.path, buffer)
       const url = URL.createObjectURL(blob)
       metadata && hash.set(metadata.path, url)
-      fileChunks = []
+      fileChunkHash.delete(metadata.path)
     }).catch((err) => {
       console.error(err)
     })
