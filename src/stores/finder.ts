@@ -9,8 +9,7 @@ import { BaseStore } from '@/stores/base.ts'
 import { fsHandlers } from '@/broadcast/main.ts'
 import { type FileSystemItem, type FSNode } from '@/types/fs.ts'
 import { wait } from '@/utils/wait.ts'
-import readme from '@/stores/README.ts'
-import { createFSNodeFromPath } from '@/utils/mod.ts'
+import readme from '@/stores/README.txt'
 
 export class FinderStore extends BaseStore {
   ls: Signal<FSNode>
