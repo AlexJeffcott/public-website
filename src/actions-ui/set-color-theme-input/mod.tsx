@@ -1,10 +1,10 @@
 import { useEventDispatcher, useStableCallback } from '@/hooks/mod.ts'
-import { type FunctionalComponent, type JSX } from 'preact'
+import { type FunctionComponent, type JSX } from '@/types/mod.ts'
 import * as SetColorTheme from '@/actions/set-color-theme/mod.ts'
 import { useStores } from '@/contexts/stores.tsx'
 import classes from '@/actions-ui/set-color-theme-input/color-picker.module.css'
 
-export const SetColorThemeInput: FunctionalComponent<{ cb?: () => void }> = ({
+export const SetColorThemeInput: FunctionComponent<{ cb?: () => void }> = ({
   cb,
 }) => {
   const { uiStore } = useStores()

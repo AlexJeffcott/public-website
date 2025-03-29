@@ -1,13 +1,12 @@
 import { Btn } from '@/ui-components/mod.ts'
 import { useEventDispatcher, useStableCallback } from '@/hooks/mod.ts'
 import { ActionEvent } from '@/actions/copy-file-or-directory/mod.ts'
-import { type FunctionalComponent } from 'preact'
-import { type FSNode, isFSNode } from '@/types/fs.ts'
+import { type FSNode, type FunctionComponent, isFSNode } from '@/types/mod.ts'
 import { promptForPath, removeFromEnd } from '@/utils/mod.ts'
 
 type GetPathArg = { msg?: string; path?: string } | undefined
 
-export const CopyFileOrDirectory: FunctionalComponent<
+export const CopyFileOrDirectory: FunctionComponent<
   { cb?: () => void; fsNode: FSNode }
 > = ({ cb, fsNode: sourceFSNode }) => {
   const [ref, dispatch] = useEventDispatcher<

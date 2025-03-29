@@ -1,9 +1,9 @@
 import { Btn } from '@/ui-components/mod.ts'
 import { useEventDispatcher, useStableCallback } from '@/hooks/mod.ts'
-import { type FunctionalComponent } from 'preact'
+import { type FunctionComponent } from '@/types/mod.ts'
 import * as Navigate from '@/actions/navigate/mod.ts'
 
-export const NavigateToHomeBtn: FunctionalComponent<{ cb?: () => void }> = ({
+export const NavigateToFSBtn: FunctionComponent<{ cb?: () => void }> = ({
   cb,
 }) => {
   const [ref, dispatch] = useEventDispatcher<
@@ -15,7 +15,7 @@ export const NavigateToHomeBtn: FunctionalComponent<{ cb?: () => void }> = ({
     dispatch(
       new Navigate.ActionEvent({
         eventType: 'navigate',
-        to: '/',
+        to: '/fs',
         cb,
       }),
     )
@@ -25,9 +25,9 @@ export const NavigateToHomeBtn: FunctionalComponent<{ cb?: () => void }> = ({
     <Btn
       forwardRef={ref}
       onPress={onPress}
-      title='Go to Home'
+      title='Go to File System'
     >
-      go home
+      Go to File System
     </Btn>
   )
 }

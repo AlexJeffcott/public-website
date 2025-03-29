@@ -22,7 +22,6 @@
     "singleQuote": true
   },
   "tasks": {
-    "build": "deno run --allow-run --allow-read --allow-net --allow-write --allow-env --watch=src build.ts",
     "serve": "deno run --allow-net --allow-read --allow-env --watch=./src server.ts"
   },
   "imports": {
@@ -35,6 +34,7 @@
     "@/ui-components/wysiwyg/wysiwyg.module.css": "./src/types/css.module.d.ts",
     "@/stores/README.txt": "./src/types/file.d.ts",
     "@/pages/gen-img/gen-img.module.css": "./src/types/css.module.d.ts",
+    "@/pages/edit-img/edit-img.module.css": "./src/types/css.module.d.ts",
     "@/pages/fs/fs.module.css": "./src/types/css.module.d.ts",
     "@/ui-components/btn/btn.module.css": "./src/types/css.module.d.ts",
     "@/pages/home/home.module.css": "./src/types/css.module.d.ts",

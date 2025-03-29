@@ -1,10 +1,9 @@
 import { Btn } from '@/ui-components/mod.ts'
 import { useEventDispatcher, useStableCallback } from '@/hooks/mod.ts'
 import { ActionEvent } from '@/actions/delete-file-or-directory/mod.ts'
-import { type FunctionalComponent } from 'preact'
-import { type FSNode, isFSNode } from '@/types/fs.ts'
+import { type FSNode, type FunctionComponent, isFSNode } from '@/types/mod.ts'
 
-export const DeleteFileOrDirectory: FunctionalComponent<
+export const DeleteFileOrDirectory: FunctionComponent<
   { cb?: () => void; fsNode: FSNode }
 > = ({ cb, fsNode }) => {
   const [ref, dispatch] = useEventDispatcher<

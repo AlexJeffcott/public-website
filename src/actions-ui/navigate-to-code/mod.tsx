@@ -1,9 +1,9 @@
 import { Btn } from '@/ui-components/mod.ts'
 import { useEventDispatcher, useStableCallback } from '@/hooks/mod.ts'
-import { type FunctionalComponent } from 'preact'
+import { type FunctionComponent } from '@/types/mod.ts'
 import * as Navigate from '@/actions/navigate/mod.ts'
 
-export const NavigateToGenImgBtn: FunctionalComponent<{ cb?: () => void }> = ({
+export const NavigateToCodeBtn: FunctionComponent<{ cb?: () => void }> = ({
   cb,
 }) => {
   const [ref, dispatch] = useEventDispatcher<
@@ -15,7 +15,7 @@ export const NavigateToGenImgBtn: FunctionalComponent<{ cb?: () => void }> = ({
     dispatch(
       new Navigate.ActionEvent({
         eventType: 'navigate',
-        to: '/gen-img',
+        to: '/code',
         cb,
       }),
     )
@@ -25,9 +25,9 @@ export const NavigateToGenImgBtn: FunctionalComponent<{ cb?: () => void }> = ({
     <Btn
       forwardRef={ref}
       onPress={onPress}
-      title='Go to Image Generator'
+      title='Go to Code Editor'
     >
-      Go to Image Generator
+      Go to Code Editor
     </Btn>
   )
 }

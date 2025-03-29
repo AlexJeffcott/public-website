@@ -1,7 +1,7 @@
 .credentialsPopover:popover-open {
-position: absolute;
-    margin-top: auto;
-    margin-bottom: auto;
+  position: absolute;
+  margin-top: auto;
+  margin-bottom: auto;
   border: 2px solid var(--txt-primary);
   background-color: var(--surface-primary);
   color: var(--txt-primary);
@@ -11,20 +11,20 @@ position: absolute;
   width: 450px;
   max-width: 90vw;
   display: grid;
-    justify-items: end;
+  justify-items: end;
 
   & h3 {
     width: 100%;
     text-align: center;
-    padding-bottom: 16px
+    padding-bottom: 16px;
   }
 }
 
 .credentialRow {
-    display: grid;
-    grid-auto-flow: column;
-    gap: 8px;
-    align-items: center;
+  display: grid;
+  grid-auto-flow: column;
+  gap: 8px;
+  align-items: center;
 }
 
 .credentialRow label {
@@ -36,4 +36,3 @@ position: absolute;
   border: 2px solid var(--txt-primary);
   border-radius: 4px;
 }
-

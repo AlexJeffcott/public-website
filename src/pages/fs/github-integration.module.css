@@ -1,41 +1,41 @@
 .githubIntegration {
-          margin: 15px 0;
-          border-radius: 4px;
-        }
-        
-        .githubConfig {
-          margin-bottom: 15px;
-        }
-        
-        .formGroup {
-          margin-bottom: 10px;
-        }
-        
-        .formGroup label {
-          display: block;
-          margin-bottom: 5px;
-          font-weight: bold;
-        }
-        
-        .formGroup input {
-          width: 100%;
-          padding: 8px;
-          border: 1px solid #ccc;
-          border-radius: 4px;
-        }
-        
-        .githubActions {
-          display: flex;
-          gap: 10px;
-          margin-bottom: 15px;
+  margin: 15px 0;
+  border-radius: 4px;
+}
+
+.githubConfig {
+  margin-bottom: 15px;
+}
+
+.formGroup {
+  margin-bottom: 10px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.formGroup input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.githubActions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
   flex-wrap: wrap;
-        }
-                
-        .githubStatus {
-          padding: 10px;
-          background-color: #f6f8fa;
-          border-radius: 4px;
-        }
+}
+
+.githubStatus {
+  padding: 10px;
+  background-color: #f6f8fa;
+  border-radius: 4px;
+}
 
 .changedFilesPopover {
   background: white;
