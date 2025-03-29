@@ -3,9 +3,11 @@ import { useEventDispatcher, useStableCallback } from '@/hooks/mod.ts'
 import { type FunctionComponent } from '@/types/mod.ts'
 import * as Navigate from '@/actions/navigate/mod.ts'
 
-export const NavigateToHomeBtn: FunctionComponent<{ cb?: () => void }> = ({
-  cb,
-}) => {
+export const NavigateToPerplexityBtn: FunctionComponent<{ cb?: () => void }> = (
+  {
+    cb,
+  },
+) => {
   const [ref, dispatch] = useEventDispatcher<
     HTMLButtonElement,
     Navigate.ActionEvent
@@ -15,7 +17,7 @@ export const NavigateToHomeBtn: FunctionComponent<{ cb?: () => void }> = ({
     dispatch(
       new Navigate.ActionEvent({
         eventType: 'navigate',
-        to: '/',
+        to: '/perplexity',
         cb,
       }),
     )
@@ -25,9 +27,9 @@ export const NavigateToHomeBtn: FunctionComponent<{ cb?: () => void }> = ({
     <Btn
       forwardRef={ref}
       onPress={onPress}
-      title='Go to Home'
+      title='Go to Perplexity'
     >
-      Go Home
+      Go to Perplexity
     </Btn>
   )
 }

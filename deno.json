@@ -32,6 +32,8 @@
     "@/pages/fs/integrations-popover.module.css": "./src/types/css.module.d.ts",
     "@/pages/fs/github-integration.module.css": "./src/types/css.module.d.ts",
     "@/ui-components/wysiwyg/wysiwyg.module.css": "./src/types/css.module.d.ts",
+    "@/pages/perplexity/perplexity.module.css": "./src/types/css.module.d.ts",
+    "@/pages/chat-gpt-o3-mini/chat-gpt-o3-mini.module.css": "./src/types/css.module.d.ts",
     "@/stores/README.txt": "./src/types/file.d.ts",
     "@/pages/gen-img/gen-img.module.css": "./src/types/css.module.d.ts",
     "@/pages/edit-img/edit-img.module.css": "./src/types/css.module.d.ts",

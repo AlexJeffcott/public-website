@@ -2,7 +2,13 @@ import { render } from 'preact'
 import { StoresProvider } from '@/contexts/stores.tsx'
 import { initActionListeners } from '@/actions/init-action-listeners.ts'
 import { createStores } from '@/stores/mod.ts'
-import { EditImgPage, FSPage, GenImgPage, HomePage } from '@/pages/mod.ts'
+import {
+  EditImgPage,
+  FSPage,
+  GenImgPage,
+  HomePage,
+  PerplexityPage,
+} from '@/pages/mod.ts'
 import '@/global.css'
 
 const element = document.body
@@ -18,6 +24,8 @@ if (element instanceof HTMLElement) {
         return <EditImgPage />
       case '/gen-img':
         return <GenImgPage />
+      case '/perplexity':
+        return <PerplexityPage />
       case '/fs':
         return <FSPage />
       default:

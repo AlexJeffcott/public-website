@@ -1,0 +1,73 @@
+.page {
+  height: 100vh;
+  width: 100vw;
+  display: grid;
+  grid-template-rows: min-content min-content 1fr min-content;
+  grid-template-columns: 1fr;
+  padding: 1rem;
+  gap: 16px;
+}
+
+.header {
+  display: grid;
+  grid-template-rows: 100%;
+  grid-template-columns: 1fr min-content min-content;
+  align-items: center;
+  justify-content: end;
+  gap: 8px;
+}
+
+.content {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: min(100%, 800px);
+  align-items: start;
+  justify-items: center;
+  justify-content: center;
+}
+
+.perplexityForm {
+  display: grid;
+  width: 100%;
+  gap: 16px;
+}
+
+.depthSelect {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--txt-primary);
+  border-radius: 4px;
+  background-color: light-dark(#ffffff, #1f1f1f);
+}
+
+.questionInput {
+  width: 100%;
+  height: 100px;
+  padding: 8px;
+  border: 1px solid var(--txt-primary);
+  border-radius: 4px;
+  background-color: light-dark(#ffffff, #1f1f1f);
+  resize: vertical;
+}
+
+.searchBtn {
+  width: 100%;
+}
+
+.error {
+  color: red;
+  margin-top: 10px;
+}
+
+.resultContainer {
+  width: 100%;
+}
+
+.result {
+  margin-top: 20px;
+  white-space: pre-wrap;
+  padding: 16px;
+  border: 1px solid var(--txt-primary);
+  border-radius: 4px;
+  background-color: light-dark(#f8f8f8, #2a2a2a);
+}

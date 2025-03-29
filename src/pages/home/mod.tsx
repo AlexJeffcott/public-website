@@ -4,6 +4,7 @@ import {
   NavigateToEditImgBtn,
   NavigateToFSBtn,
   NavigateToGenImgBtn,
+  NavigateToPerplexityBtn,
   SetColorThemeInput,
 } from '@/actions-ui/mod.ts'
 
@@ -19,6 +20,7 @@ export const HomePage: FunctionalComponent = () => {
         <nav class={classes.nav}>
           <NavigateToGenImgBtn />
           <NavigateToEditImgBtn />
+          <NavigateToPerplexityBtn />
           <NavigateToFSBtn />
         </nav>
       </div>
