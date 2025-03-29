@@ -25,9 +25,9 @@ export const NavigateToGenImgBtn: FunctionComponent<{ cb?: () => void }> = ({
     <Btn
       forwardRef={ref}
       onPress={onPress}
-      title='Go to Image Generator'
+      title='Go to Dall-E 3 Image Generator'
     >
-      Go to Image Generator
+      Go to Dall-E 3 Image Generator
     </Btn>
   )
 }
