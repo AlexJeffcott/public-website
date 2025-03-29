@@ -1,11 +1,9 @@
 import classes from '@/pages/edit-img/edit-img.module.css'
-import { cls } from '@/utils/mod.ts'
-import { type FunctionComponent, isObject } from '@/types/mod.ts'
-import { computed, signal } from '@preact/signals'
+import { type FunctionComponent } from '@/types/mod.ts'
+import { signal } from '@preact/signals'
 import { PrimitivePersistence } from '@/persistence/mod.ts'
 import { NavigateToHomeBtn, SetColorThemeInput } from '@/actions-ui/mod.ts'
 import { Btn, WYSIWYG } from '@/ui-components/mod.ts'
-import { useStableCallback } from '@/hooks/mod.ts'
 
 const apiKey = new PrimitivePersistence('openaiApiKey', '')
 const imageResult = signal('')
@@ -22,9 +20,6 @@ const isDrawing = signal(false)
 const canvasElement = signal<HTMLCanvasElement | null>(null)
 const ctx = signal<CanvasRenderingContext2D | null>(null)
 
-const previewHeight = computed(() => parseInt(size.value.split('x')[0]) / 2)
-const previewWidth = computed(() => parseInt(size.value.split('x')[1]) / 2)
-
 let lastX: number = 0
 let lastY: number = 0
 
@@ -40,7 +35,7 @@ function initCanvas() {
 
   const rect = container.getBoundingClientRect()
 
-  // Use the maximum dimension to ensure square canvas
+  // NOTE: use max to ensure square canvas
   const size = Math.max(rect.width, rect.height)
   canvas.width = size
   canvas.height = size
@@ -49,7 +44,7 @@ function initCanvas() {
   if (!_ctx) throw new Error('expected canvas context to be truthy')
 
   // Fill with white (transparent mask)
-  _ctx.fillStyle = 'rgba(0, 0, 0, 0.5)' // You can change the color and opacity as needed
+  _ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'
   _ctx.fillRect(0, 0, canvas.width, canvas.height)
 
   // Set the operation to "erase"
@@ -265,11 +260,10 @@ async function handleImageChange(e) {
     await validateImage(file)
     image.value = file
     error.value = ''
-    // Initialize canvas after image is loaded
     setTimeout(initCanvas, 100)
   } catch (err) {
     error.value = err
-    e.target.value = '' // Reset file input
+    e.target.value = ''
     image.value = undefined
     imageUrl.value = ''
   }
@@ -333,31 +327,17 @@ async function generateImage() {
 
   try {
     const maskBlob = await scaleCanvasToBlob(canvasElement.value, 1592, 1592)
-    const formData = new FormData()
-    formData.append('image', image.value)
-    formData.append('mask', maskBlob)
-    formData.append('model', 'dall-e-2')
-    formData.append('prompt', prompt.value)
-    formData.append('size', size.value)
-    formData.append('n', 1)
+    if (!(maskBlob instanceof Blob)) return
 
-    const response = await fetch(
-      'https://api.openai.com/v1/images/edits',
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${apiKey.current.value}`,
-        },
-        body: formData,
-      },
-    )
+    const result = await openaiImagesEdits({
+      apiKey: apiKey.current.value,
+      image: image.value,
+      mask: maskBlob,
+      prompt: prompt.value,
+      size: size.value,
+    })
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-
-    const data = await response.json()
-    imageResult.value = data.data[0].url
+    imageResult.value = result
   } catch (err) {
     error.value = `Error: ${err.message}`
   } finally {
@@ -365,12 +345,41 @@ async function generateImage() {
   }
 }
 
-function generateId() {
-  const characters =
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-  let result = ''
-  for (let i = 0; i < 20; i++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length))
+async function openaiImagesEdits(
+  { image, mask, prompt, size, apiKey, n, model }: {
+    image: Blob
+    mask: Blob
+    prompt: string
+    size: string
+    apiKey: string
+    n?: number
+    model?: string
+  },
+) {
+  const formData = new FormData()
+
+  formData.append('image', image)
+  formData.append('mask', mask)
+  formData.append('model', model || 'dall-e-2')
+  formData.append('prompt', prompt)
+  formData.append('size', size)
+  formData.append('n', 1)
+
+  const response = await fetch(
+    'https://api.openai.com/v1/images/edits',
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: formData,
+    },
+  )
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`)
   }
-  return result
+
+  const data = await response.json()
+  return data.data[0].url
 }
