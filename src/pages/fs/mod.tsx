@@ -12,8 +12,9 @@ import { cls, encodeStringForUrl, getFileType } from '@/utils/mod.ts'
 import { useRef, useSignalEffect, useStableCallback } from '@/hooks/mod.ts'
 import { useStores } from '@/contexts/stores.tsx'
 import { type FSNode, type FunctionComponent, type JSX } from '@/types/mod.ts'
-import { Btn, WYSIWYG } from '@/ui-components/mod.ts'
+import { Btn, Popover, WYSIWYG } from '@/ui-components/mod.ts'
 import { IntegrationsPopover } from '@/pages/fs/integrations-popover.tsx'
+import { AgentPopover } from '@/pages/fs/agent-popover.tsx'
 
 export const FSPage: FunctionComponent = () => {
   const { finderStore, routerStore, editorStore } = useStores()
@@ -56,14 +57,20 @@ export const FSPage: FunctionComponent = () => {
           )
           : <div></div>}
         <>
-          <Btn popovertarget='manage-integrations'>manage integrations</Btn>
-          <IntegrationsPopover />
+          <Popover class={classes.agentWidth} id='agent' cta='agent'>
+            <AgentPopover />
+          </Popover>
+        </>
+        <>
+          <Popover id='manage-integrations' cta='manage integrations'>
+            <IntegrationsPopover />
+          </Popover>
         </>
 
         <SetColorThemeInput />
       </header>
       <aside class={classes.fileTreeSection}>
-        {!finderStore.ls.value?.children?.length && <CreateFileOrDirectory />}
+        <CreateFileOrDirectory />
         <FileTree fsNode={finderStore.ls.value} />
         {finderStore.importStatus.value.errors.length > 0 && (
           <div>

@@ -38,12 +38,8 @@ const saveKey = (key: string, storageKey: string) => {
 
 export const IntegrationsPopover = () => {
   return (
-    <div
-      id='manage-integrations'
-      popover='auto'
-      class={classes.credentialsPopover}
-    >
-      <h3>Manage API Credentials</h3>
+    <>
+      <h3 class={classes.popoverTitle}>Manage API Credentials</h3>
 
       {inputs.map((i) => (
         <div class={classes.credentialRow} key={i.id}>
@@ -60,6 +56,6 @@ export const IntegrationsPopover = () => {
         </div>
       ))}
       <GitHubIntegration />
-    </div>
+    </>
   )
 }

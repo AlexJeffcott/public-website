@@ -1,0 +1,16 @@
+.popover:popover-open {
+  position: absolute;
+  margin-top: auto;
+  margin-bottom: auto;
+  border: 2px solid var(--txt-primary);
+  background-color: var(--surface-primary);
+  color: var(--txt-primary);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 450px;
+  max-width: 90vw;
+  display: grid;
+  justify-items: end;
+}
+

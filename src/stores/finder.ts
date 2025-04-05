@@ -1,14 +1,13 @@
-import {
-  computed,
-  effect,
-  type ReadonlySignal,
-  type Signal,
-  signal,
-} from '@preact/signals'
+import { computed, effect, signal } from '@preact/signals'
 import { BaseStore } from '@/stores/base.ts'
 import { fsHandlers } from '@/broadcast/main.ts'
-import { type FileSystemItem, type FSNode } from '@/types/fs.ts'
-import { wait } from '@/utils/wait.ts'
+import {
+  type FileSystemItem,
+  type FSNode,
+  type ReadonlySignal,
+  type Signal,
+} from '@/types/mod.ts'
+import { wait } from '@/utils/mod.ts'
 import readme from '@/stores/README.txt'
 
 export class FinderStore extends BaseStore {
@@ -83,11 +82,11 @@ export class FinderStore extends BaseStore {
     }
   }
 
-  create(fsNode: FSNode, fsItem?: FileSystemItem): void {
+  create(fsNode: FSNode, fsItem: string): void {
     this.exists(fsNode).then((exists) => {
       if (!exists) {
         if (fsNode.kind === 'file') {
-          fsHandlers.write(fsNode.path, fsItem || '').then(async () => {
+          fsHandlers.write(fsNode.path, fsItem).then(async () => {
             await wait(100)
             this.refreshLs()
           })

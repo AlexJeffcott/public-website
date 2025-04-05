@@ -37,7 +37,17 @@ export const WYSIWYG: FunctionComponent<
     const textarea = textareaRef.current
     const displayDiv = displayDivRef.current
 
-    if (!textarea || !displayDiv) return
+    if (!textarea) return
+
+    if (textarea) {
+      setTimeout(() => {
+        const length = contentSig?.value.length || 0
+        textarea.focus()
+        textarea.setSelectionRange(length, length)
+      }, 200)
+    }
+
+    if (!displayDiv) return
 
     const handleScroll = () => {
       displayDiv.scrollTop = textarea.scrollTop
@@ -84,6 +94,7 @@ export const WYSIWYG: FunctionComponent<
         spellcheck={false}
         onInput={onInputCB}
         name={name}
+        value={contentSig}
       >
         {contentSig}
       </textarea>

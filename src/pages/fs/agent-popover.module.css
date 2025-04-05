@@ -1,0 +1,28 @@
+.msgs {
+  display: grid;
+  gap: 8px;
+  white-space: pre-wrap;
+    overflow: auto;
+    width: 100%;
+    text-wrap: auto;
+    word-break: break-word;
+    padding: 0 8px 0 8px;
+}
+
+.thinking {
+  font-family: monospace;
+}
+
+.response {
+  font-family: cursive;
+}
+
+.prompt {
+  position: relative;
+  height: 200px;
+  width: 100%;
+  border: 1px solid var(--txt-primary);
+  border-radius: 4px;
+  background-color: light-dark(#ffffff, #1f1f1f);
+}
+

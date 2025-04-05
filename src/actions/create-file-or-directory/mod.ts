@@ -55,14 +55,8 @@ function action(
     cb: Details['cb']
   },
 ) {
-  finderStore.exists(newFSNode).then((exists) => {
-    if (exists) {
-      throw new Error('path already exists')
-    } else {
-      finderStore.create(newFSNode)
-      if (typeof cb === 'function') {
-        cb()
-      }
-    }
-  })
+  finderStore.create(newFSNode, '')
+  if (typeof cb === 'function') {
+    cb()
+  }
 }

@@ -1,4 +1,4 @@
-import { type FSNode } from '@/types/fs.ts'
+import { type FSNode } from '@/types/mod.ts'
 
 function isFilePath(path: string): boolean {
   const hasExtension = /\.[^/\\]+$/.test(path)

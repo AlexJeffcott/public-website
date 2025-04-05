@@ -4,6 +4,7 @@ import { useSignal } from '@preact/signals'
 import { PrimitivePersistence } from '@/persistence/mod.ts'
 import { NavigateToHomeBtn, SetColorThemeInput } from '@/actions-ui/mod.ts'
 import { Btn } from '@/ui-components/mod.ts'
+import { perplexity } from '@/libs/llm.ts'
 
 const perplexityApiKey = new PrimitivePersistence('perplexityApiKey', '')
 
@@ -31,32 +32,11 @@ const Perplexity: FunctionComponent = () => {
     isLoading.value = true
     error.value = ''
 
-    fetch('https://api.perplexity.ai/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${perplexityApiKey.current.value}`,
-      },
-      body: JSON.stringify({
-        model: depthToModelMap[depth.value],
-        messages: [
-          {
-            'role': 'system',
-            'content': 'Be precise and concise.',
-          },
-          {
-            'role': 'user',
-            'content': question.value,
-          },
-        ],
-      }),
+    perplexity({
+      apiKey: perplexityApiKey.current.value,
+      prompt: question.value,
+      model: depthToModelMap[depth.value],
     })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-        return response.json()
-      })
       .then((data) => {
         result.value = data.choices?.reduce((acc, cur) =>
               acc += cur.message.content, '') +

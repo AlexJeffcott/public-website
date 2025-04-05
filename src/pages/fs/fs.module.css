@@ -178,3 +178,7 @@ button.btn {
 .responsiveMediaContainer audio {
   width: 100%;
 }
+
+.agentWidth {
+  width: 600px !important;
+}

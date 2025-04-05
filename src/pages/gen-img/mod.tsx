@@ -5,6 +5,7 @@ import { useSignal } from '@preact/signals'
 import { PrimitivePersistence } from '@/persistence/mod.ts'
 import { NavigateToHomeBtn, SetColorThemeInput } from '@/actions-ui/mod.ts'
 import { Btn, WYSIWYG } from '@/ui-components/mod.ts'
+import { dalle3Create } from '@/libs/llm.ts'
 
 const openAIKey = new PrimitivePersistence('openaiApiKey', '')
 
@@ -20,54 +21,27 @@ const GenImage: FunctionComponent = () => {
         onFormData={(e) => {
           if (isObject(e) && 'formData' in e) {
             const data = e.formData as FormData
-            const body = {
-              model: data.get('model'),
-              prompt: data.get('prompt'),
-              size: data.get('size'),
-              style: data.get('style'),
-              quality: data.get('quality') ===
-                  'hd'
-                ? 'hd'
-                : undefined,
-              n: 1,
-            }
             isLoading.value = true
             error.value = ''
 
-            fetch(
-              'https://api.openai.com/v1/images/generations',
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${
-                    data.get(
-                      'apiKey',
-                    )
-                  }`,
-                },
-                body: JSON.stringify(
-                  body,
-                ),
-              },
-            )
-              .then((response) => {
-                if (!response.ok) {
-                  throw new Error(
-                    `HTTP error! status: ${response.status}`,
-                  )
-                }
-                return response.json()
+            try {
+              dalle3Create({
+                prompt: data.get('prompt'),
+                size: data.get('size'),
+                style: data.get('style'),
+                quality: data.get('quality') ===
+                    'hd'
+                  ? 'hd'
+                  : undefined,
+                apiKey: data.get('apiKey'),
+              }).then((res) => {
+                imageResult.value = res
               })
-              .then((data) => {
-                imageResult.value = data.data[0].url
-              })
-              .catch((err) => {
-                error.value = `Error: ${err.message}`
-              })
-              .finally(() => {
-                isLoading.value = false
-              })
+            } catch (err) {
+              error.value = `Error: ${err.message}`
+            } finally {
+              isLoading.value = false
+            }
           }
         }}
         onSubmit={(e) => {
@@ -106,12 +80,6 @@ const GenImage: FunctionComponent = () => {
         <div class={classes.prompt}>
           <WYSIWYG name='prompt' />
         </div>
-        <input
-          type='hidden'
-          name='model'
-          value='dall-e-3'
-        >
-        </input>
         <input
           type='hidden'
           name='apiKey'

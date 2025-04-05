@@ -1,7 +1,8 @@
 import { createBroadcastHub } from '@/broadcast/mod.ts'
-import { computed, type Signal, signal } from '@preact/signals'
-import { type FileSystemItem, type FSNode } from '@/types/fs.ts'
+import { computed, signal } from '@preact/signals'
+import { type FileSystemItem, type FSNode, type Signal } from '@/types/mod.ts'
 import { isTextFile } from '@/utils/get-file-type.ts'
+import { o3Mini, sonnet37 } from '@/libs/llm.ts'
 
 function createSharedWorker(
   scriptPath: string,
@@ -198,7 +199,7 @@ const fsHandlers = {
 
 export { areAllConnected, fsHandlers, messages }
 
-async function sendToLLM(path: string) {
+export async function sendToLLM(path: string) {
   const inputStr = await fsHandlers.read(path.replace('.output', ''))
 
   const { model, persona } = parseHashBang(inputStr)
@@ -206,7 +207,9 @@ async function sendToLLM(path: string) {
   let data
 
   if (model === 'claude') {
-    data = await claude(inputStr, persona)
+    data = await sonnet37(inputStr, persona)
+  } else if (model === 'chatgpt') {
+    data = await o3Mini(inputStr, persona)
   }
 
   return hub.request<void>('fs-worker', {
@@ -214,83 +217,6 @@ async function sendToLLM(path: string) {
     path,
     data,
   })
-}
-
-const personas: Record<string, string> = {
-  frontend:
-    `You are an expert TypeScript web engineer who specializes in Preact and signals.
-Key principles:
-- Be precise and concise
-- Only explain when asked
-- Favor Preact and signals over other solutions
-- Avoid dependencies unless specifically requested
-- Write clean, type-safe code
-- Prefer modules to classes
-- Don't use Tailwind or css utilities
-- Only use specified techs
-- Focus on modern web standards and best practices
-- Don't output html answers, unless asked
-- If more information is needed, you ask.`,
-  fullstack:
-    `You are an expert full stack developer who is expert in PHP, Golang and Typescript.
-Key principles:
-- Be precise and concise
-- Only explain when asked
-- Avoid dependencies unless specifically requested
-- Write clean, type-safe code
-- Prefer functions to classes`,
-}
-
-async function claude(data: string, persona: string) {
-  const apiKey = localStorage.getItem('claudeApiKey') || ''
-
-  if (!apiKey) {
-    throw new Error('claudeApiKey local storage api key is required')
-  }
-
-  if (!data.trim()) {
-    throw new Error('you should include some kind of prompt')
-  }
-
-  const system = personas[persona] || 'frontender'
-
-  try {
-    const result = await fetch(
-      'https://api.anthropic.com/v1/messages',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': true,
-          'Authorization': `Bearer ${apiKey}`,
-          'X-Api-Key': apiKey,
-        },
-        body: JSON.stringify({
-          model: 'claude-3-7-sonnet-20250219',
-          messages: [
-            { role: 'user', content: data },
-          ],
-          max_tokens: 5096,
-          temperature: 0.1,
-          system,
-        }),
-      },
-    )
-
-    if (!result.ok) {
-      const errorData = await result.json()
-      throw new Error(
-        errorData.error?.message ||
-          `HTTP error! status: ${result.status}`,
-      )
-    }
-
-    const json = await result.json()
-    return json.content[0].text
-  } catch (err) {
-    return `Error: ${err.message}`
-  }
 }
 
 function parseHashBang(firstLine: string) {
@@ -302,5 +228,5 @@ function parseHashBang(firstLine: string) {
     return { model, persona }
   }
 
-  return { model: 'claude', persona: 'frontender' }
+  return { model: 'claude', persona: 'frontend' }
 }

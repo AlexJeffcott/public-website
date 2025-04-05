@@ -4,6 +4,7 @@ import { signal } from '@preact/signals'
 import { PrimitivePersistence } from '@/persistence/mod.ts'
 import { NavigateToHomeBtn, SetColorThemeInput } from '@/actions-ui/mod.ts'
 import { Btn, WYSIWYG } from '@/ui-components/mod.ts'
+import { dalle2Edits } from '@/libs/llm.ts'
 
 const apiKey = new PrimitivePersistence('openaiApiKey', '')
 const imageResult = signal('')
@@ -329,7 +330,7 @@ async function generateImage() {
     const maskBlob = await scaleCanvasToBlob(canvasElement.value, 1592, 1592)
     if (!(maskBlob instanceof Blob)) return
 
-    const result = await openaiImagesEdits({
+    const result = await dalle2Edits({
       apiKey: apiKey.current.value,
       image: image.value,
       mask: maskBlob,
@@ -343,43 +344,4 @@ async function generateImage() {
   } finally {
     isLoading.value = false
   }
-}
-
-async function openaiImagesEdits(
-  { image, mask, prompt, size, apiKey, n, model }: {
-    image: Blob
-    mask: Blob
-    prompt: string
-    size: string
-    apiKey: string
-    n?: number
-    model?: string
-  },
-) {
-  const formData = new FormData()
-
-  formData.append('image', image)
-  formData.append('mask', mask)
-  formData.append('model', model || 'dall-e-2')
-  formData.append('prompt', prompt)
-  formData.append('size', size)
-  formData.append('n', 1)
-
-  const response = await fetch(
-    'https://api.openai.com/v1/images/edits',
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: formData,
-    },
-  )
-
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`)
-  }
-
-  const data = await response.json()
-  return data.data[0].url
 }

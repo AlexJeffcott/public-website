@@ -222,7 +222,6 @@ export const GitHubIntegration = () => {
           </Btn>
           <Btn
             onPress={() => confirmDialogRef.current?.close()}
-            variant='secondary'
           >
             Cancel
           </Btn>
