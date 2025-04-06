@@ -49,23 +49,12 @@ export const FSPage: FunctionComponent = () => {
     >
       <header class={classes.header}>
         <NavigateToHomeBtn />
-        {editorStore.text.value.startsWith('#! ')
-          ? (
-            <RunTool
-              fsNodeSig={editorStore.currentFSNode}
-            />
-          )
-          : <div></div>}
-        <>
-          <Popover class={classes.agentWidth} id='agent' cta='agent'>
-            <AgentPopover />
-          </Popover>
-        </>
-        <>
-          <Popover id='manage-integrations' cta='manage integrations'>
-            <IntegrationsPopover />
-          </Popover>
-        </>
+        <Popover class={classes.agentWidth} id='agent' cta='agent'>
+          <AgentPopover />
+        </Popover>
+        <Popover id='manage-integrations' cta='manage integrations'>
+          <IntegrationsPopover />
+        </Popover>
 
         <SetColorThemeInput />
       </header>

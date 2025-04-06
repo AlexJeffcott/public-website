@@ -41,7 +41,7 @@ export const WYSIWYG: FunctionComponent<
 
     if (textarea) {
       setTimeout(() => {
-        const length = contentSig?.value.length || 0
+        const length = contentSig?.peek().length || 0
         textarea.focus()
         textarea.setSelectionRange(length, length)
       }, 200)
@@ -94,7 +94,6 @@ export const WYSIWYG: FunctionComponent<
         spellcheck={false}
         onInput={onInputCB}
         name={name}
-        value={contentSig}
       >
         {contentSig}
       </textarea>
