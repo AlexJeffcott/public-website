@@ -1,8 +1,5 @@
 import { type Msg, type Msgs } from '@/types/mod.ts'
-
-export const personas: Record<string, string> = {
-  frontend:
-    `You are an expert TypeScript web engineer who specializes in Preact and signals.
+;`You are an expert TypeScript web engineer who specializes in Preact and signals.
 Key principles:
 - Be precise and concise
 - Only explain when asked
@@ -14,39 +11,54 @@ Key principles:
 - Only use specified techs
 - Focus on modern web standards and best practices
 - Don't output html answers, unless asked
-- If more information is needed, you ask.`,
-  fullstack:
-    `You are an expert full stack developer who is expert in PHP, Golang and Typescript.
+- If more information is needed, you ask.`
+
+export const fullstackPersona =
+  `You are an expert full stack developer who is expert in PHP, Golang and Typescript.
 Key principles:
 - Be precise and concise
 - Only explain when asked
 - Avoid dependencies unless specifically requested
 - Write clean, type-safe code
-- Prefer functions to classes`,
-  agent: `Be precise and concise`,
-  default: 'Be precise and concise',
-}
+- Prefer functions to classes`
 
-export async function agent(messages: Msgs) {
+export const defaultPersona = 'Be precise and concise'
+
+export async function agent(ctx: string, messages: Msgs) {
   const tools = [{
     type: 'text_editor_20250124',
     name: 'str_replace_editor',
+  }, {
+    'name': 'get_weather',
+    'description': 'Get the current weather in a given location',
+    'input_schema': {
+      'type': 'object',
+      'properties': {
+        'location': {
+          'type': 'string',
+          'description': 'The city and state, e.g. San Francisco, CA',
+        },
+      },
+      'required': ['location'],
+    },
   }]
-  return sonnet37(messages, 'agent', tools)
+
+  const system =
+    `Be precise and concise\nYou should take the following as general context: ${ctx}`
+
+  return sonnet37(messages, system, tools)
 }
 
 export async function sonnet37(
   messages: Msgs,
-  persona: string,
-  tools: Array<{ type: string; name: string }> = [],
+  ctx: string,
+  tools: Array<Record<string, unknown>> = [],
 ): Promise<Msg> {
   const apiKey = localStorage.getItem('claudeApiKey') || ''
 
   if (!apiKey) {
     throw new Error('claudeApiKey local storage api key is required')
   }
-
-  const system = personas[persona] ?? personas['default']
 
   try {
     const body = {
@@ -57,7 +69,7 @@ export async function sonnet37(
         'budget_tokens': 1024,
       },
       messages,
-      system,
+      system: ctx,
       tools,
     }
 
@@ -93,7 +105,7 @@ export async function sonnet37(
   }
 }
 
-export async function o3Mini(messages: Msgs, persona: string): Promise<Msg> {
+export async function o3Mini(messages: Msgs, ctx: string): Promise<Msg> {
   const apiKey = localStorage.getItem('openaiApiKey') || ''
 
   if (!apiKey) {
@@ -102,7 +114,7 @@ export async function o3Mini(messages: Msgs, persona: string): Promise<Msg> {
 
   messages.unshift({
     role: 'system',
-    content: personas[persona] ?? personas['default'],
+    content: ctx,
   })
 
   try {

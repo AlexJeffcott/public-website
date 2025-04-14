@@ -3,7 +3,6 @@ import { createCB as createNavigateCB } from '@/actions/navigate/mod.ts'
 import { createCB as createCreateFileOrDirectoryCB } from '@/actions/create-file-or-directory/mod.ts'
 import { createCB as createDeleteFileOrDirectoryCB } from '@/actions/delete-file-or-directory/mod.ts'
 import { createCB as createCopyFileOrDirectoryCB } from '@/actions/copy-file-or-directory/mod.ts'
-
 import { type Stores } from '@/stores/mod.ts'
 
 export function initActionListeners(element: HTMLElement, stores: Stores) {

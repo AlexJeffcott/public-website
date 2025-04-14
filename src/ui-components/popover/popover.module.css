@@ -12,5 +12,7 @@
   max-width: 90vw;
   display: grid;
   justify-items: end;
+  max-height: 100%;
+  overflow: auto;
 }
 

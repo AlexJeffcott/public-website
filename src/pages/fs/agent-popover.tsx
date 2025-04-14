@@ -8,7 +8,7 @@ import { fsHandlers } from '@/broadcast/main.ts'
 import { createFSNodeFromPath, wait } from '@/utils/mod.ts'
 
 export const AgentPopover = () => {
-  const { finderStore, routerStore } = useStores()
+  const { finderStore, editorStore } = useStores()
   const isProcessing = useSignal(false)
   const sig = useSignal('')
   const msgs = useSignal<Msgs>([])
@@ -24,8 +24,11 @@ export const AgentPopover = () => {
 
     const process = async () => {
       isProcessing.value = true
+      const ctx =
+        `The current file path is ${editorStore.currentFilePath.peek()}. The root directory is '/'. Vurrent location: Berlin.`
 
-      const resp = await agent(msgs.value).catch(console.error)
+      const resp = await agent(ctx, msgs.value).catch(console.error)
+
       if (resp) {
         msgs.value = [...msgs.value, resp]
         sig.value = ''
