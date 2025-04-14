@@ -2,7 +2,6 @@ import { createBroadcastHub } from '@/broadcast/mod.ts'
 import { computed, signal } from '@preact/signals'
 import { type FileSystemItem, type FSNode, type Signal } from '@/types/mod.ts'
 import { isTextFile } from '@/utils/get-file-type.ts'
-import { o3Mini, sonnet37 } from '@/libs/llm.ts'
 
 function createSharedWorker(
   scriptPath: string,
@@ -140,16 +139,11 @@ const fsHandlers = {
         return readAndPost()
       }).catch((err) => console.error(err))
     } else {
-      // tool .output files get more handling
-      if (path.endsWith('.output')) {
-        return sendToLLM(path)
-      } else {
-        return hub.request<void>('fs-worker', {
-          operation: 'write',
-          path,
-          data,
-        })
-      }
+      return hub.request<void>('fs-worker', {
+        operation: 'write',
+        path,
+        data,
+      })
     }
   },
   delete(path: string) {
@@ -198,35 +192,3 @@ const fsHandlers = {
 }
 
 export { areAllConnected, fsHandlers, messages }
-
-export async function sendToLLM(path: string) {
-  const inputStr = await fsHandlers.read(path.replace('.output', ''))
-
-  const { model, persona } = parseHashBang(inputStr)
-
-  let data
-
-  if (model === 'claude') {
-    data = await sonnet37(inputStr, persona)
-  } else if (model === 'chatgpt') {
-    data = await o3Mini(inputStr, persona)
-  }
-
-  return hub.request<void>('fs-worker', {
-    operation: 'write',
-    path,
-    data,
-  })
-}
-
-function parseHashBang(firstLine: string) {
-  const isHashBang = firstLine.startsWith('#! ')
-
-  if (isHashBang) {
-    const [model, persona] = firstLine.slice(3).split('/')
-
-    return { model, persona }
-  }
-
-  return { model: 'claude', persona: 'frontend' }
-}

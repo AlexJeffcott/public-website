@@ -39,19 +39,18 @@ export const WYSIWYG: FunctionComponent<
 
     if (!textarea) return
 
-    if (textarea) {
-      setTimeout(() => {
-        const length = contentSig?.peek().length || 0
-        textarea.focus()
-        textarea.setSelectionRange(length, length)
-      }, 200)
-    }
+    //if (textarea) {
+    //  setTimeout(() => {
+    //    const length = contentSig?.peek().length || 0
+    //    textarea.focus()
+    //    textarea.setSelectionRange(length, length)
+    //  }, 200)
+    //}
 
     if (!displayDiv) return
 
     const handleScroll = () => {
       displayDiv.scrollTop = textarea.scrollTop
-      displayDiv.scrollLeft = textarea.scrollLeft
     }
 
     textarea.addEventListener('scroll', handleScroll)
@@ -94,6 +93,7 @@ export const WYSIWYG: FunctionComponent<
         spellcheck={false}
         onInput={onInputCB}
         name={name}
+        //value={contentSig}
       >
         {contentSig}
       </textarea>

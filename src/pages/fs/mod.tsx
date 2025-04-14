@@ -5,7 +5,6 @@ import {
   CreateFileOrDirectory,
   DeleteFileOrDirectory,
   NavigateToHomeBtn,
-  RunTool,
   SetColorThemeInput,
 } from '@/actions-ui/mod.ts'
 import { cls, encodeStringForUrl, getFileType } from '@/utils/mod.ts'

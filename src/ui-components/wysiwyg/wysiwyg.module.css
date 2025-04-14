@@ -32,7 +32,8 @@
   padding: 0px;
   white-space: pre;
   overflow: hidden;
-  inset: 0 16px;
+  /*the extra 2px is needed to kep things aligned…*/
+  inset: 0 16px 18px 16px;
   position: absolute;
   border: none;
   outline: none;
